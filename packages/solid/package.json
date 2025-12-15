@@ -1,0 +1,50 @@
+{
+  "name": "@konfetti/solid",
+  "version": "0.1.0",
+  "description": "Solid.js wrapper for konfetti.js",
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome lint src",
+    "check": "biome check src --write"
+  },
+  "keywords": [
+    "konfetti",
+    "confetti",
+    "solid",
+    "solidjs",
+    "animation"
+  ],
+  "author": "Andrea Bettich",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/andreabettich/konfetti.js.git",
+    "directory": "packages/solid"
+  },
+  "peerDependencies": {
+    "konfetti.js": ">=0.1.0",
+    "solid-js": ">=1.0.0"
+  },
+  "devDependencies": {
+    "konfetti.js": "workspace:*",
+    "solid-js": "^1.9.0",
+    "tsup": "^8.3.0",
+    "typescript": "^5.9.3"
+  }
+}

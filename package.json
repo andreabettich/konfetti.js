@@ -1,0 +1,38 @@
+{
+  "name": "konfetti-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Monorepo for konfetti.js and framework wrappers",
+  "type": "module",
+  "scripts": {
+    "build": "pnpm -r run build",
+    "dev": "pnpm -r run dev",
+    "lint": "biome lint .",
+    "format": "biome format --write .",
+    "check": "biome check .",
+    "typecheck": "pnpm -r run typecheck"
+  },
+  "keywords": [
+    "confetti",
+    "konfetti",
+    "particles",
+    "animation"
+  ],
+  "author": "Andrea Bettich",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/andreabettich/konfetti.js.git"
+  },
+  "homepage": "https://github.com/andreabettich/konfetti.js#readme",
+  "bugs": {
+    "url": "https://github.com/andreabettich/konfetti.js/issues"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.3.8"
+  },
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20"
+  }
+}
