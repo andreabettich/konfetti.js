@@ -1,6 +1,6 @@
 {
   "name": "@konfetti/vue",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Vue wrapper for konfetti.js",
   "type": "module",
   "main": "dist/index.cjs",
@@ -41,7 +41,7 @@
     "directory": "packages/vue"
   },
   "peerDependencies": {
-    "konfetti.js": ">=0.1.0",
+    "konfetti.js": ">=0.2.0",
     "vue": ">=3.0.0"
   },
   "devDependencies": {

@@ -1,6 +1,6 @@
 {
   "name": "@konfetti/web-components",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Web Components wrapper for konfetti.js",
   "type": "module",
   "main": "dist/index.cjs",
@@ -42,7 +42,7 @@
     "directory": "packages/web-components"
   },
   "peerDependencies": {
-    "konfetti.js": ">=0.1.0"
+    "konfetti.js": ">=0.2.0"
   },
   "devDependencies": {
     "konfetti.js": "workspace:*",

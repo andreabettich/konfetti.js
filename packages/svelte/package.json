@@ -1,6 +1,6 @@
 {
   "name": "@konfetti/svelte",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Svelte wrapper for konfetti.js",
   "type": "module",
   "svelte": "dist/index.js",
@@ -42,7 +42,7 @@
     "directory": "packages/svelte"
   },
   "peerDependencies": {
-    "konfetti.js": ">=0.1.0",
+    "konfetti.js": ">=0.2.0",
     "svelte": ">=4.0.0 || >=5.0.0"
   },
   "devDependencies": {
