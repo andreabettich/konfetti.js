@@ -10,7 +10,10 @@
     "lint": "biome lint .",
     "format": "biome format --write .",
     "check": "biome check .",
-    "typecheck": "pnpm -r run typecheck"
+    "typecheck": "pnpm -r run typecheck",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "release": "pnpm build && changeset publish"
   },
   "keywords": [
     "confetti",
@@ -29,7 +32,8 @@
     "url": "https://github.com/andreabettich/konfetti.js/issues"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.3.8"
+    "@biomejs/biome": "^2.3.8",
+    "@changesets/cli": "^2.29.8"
   },
   "packageManager": "pnpm@10.25.0",
   "engines": {
