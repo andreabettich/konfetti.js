@@ -1,6 +1,6 @@
 {
   "name": "@konfetti/react",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "React wrapper for konfetti.js",
   "type": "module",
   "main": "dist/index.cjs",
@@ -41,7 +41,7 @@
     "directory": "packages/react"
   },
   "peerDependencies": {
-    "konfetti.js": ">=0.1.0",
+    "konfetti.js": ">=0.2.0",
     "react": ">=18.0.0"
   },
   "devDependencies": {
