@@ -47,7 +47,7 @@
   },
   "devDependencies": {
     "konfetti.js": "workspace:*",
-    "svelte": "^5.0.0",
+    "svelte": "^5.46.4",
     "tsup": "^8.3.0",
     "typescript": "^5.9.3"
   }
