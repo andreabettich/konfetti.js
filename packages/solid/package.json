@@ -47,7 +47,7 @@
   },
   "devDependencies": {
     "konfetti.js": "workspace:*",
-    "solid-js": "^1.9.0",
+    "solid-js": "^1.9.11",
     "tsup": "^8.3.0",
     "typescript": "^5.9.3"
   }
