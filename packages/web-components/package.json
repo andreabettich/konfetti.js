@@ -1,5 +1,5 @@
 {
-  "name": "@konfetti/web-components",
+  "name": "@konfetti-js/web-components",
   "version": "1.0.0",
   "description": "Web Components wrapper for konfetti.js",
   "type": "module",
@@ -42,10 +42,10 @@
     "directory": "packages/web-components"
   },
   "peerDependencies": {
-    "konfetti.js": ">=0.2.0"
+    "@konfetti-js/core": ">=0.2.0"
   },
   "devDependencies": {
-    "konfetti.js": "workspace:*",
+    "@konfetti-js/core": "workspace:*",
     "tsup": "^8.3.0",
     "typescript": "^5.9.3"
   }

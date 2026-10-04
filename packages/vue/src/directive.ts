@@ -9,7 +9,7 @@ import {
   sideCannons,
   pride,
   type KonfettiOptions,
-} from 'konfetti.js';
+} from '@konfetti-js/core';
 
 export interface KonfettiDirectiveOptions extends KonfettiOptions {
   /** Event to trigger konfetti (default: 'click') */

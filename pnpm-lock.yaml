@@ -32,12 +32,12 @@ importers:
 
   packages/react:
     devDependencies:
+      '@konfetti-js/core':
+        specifier: workspace:*
+        version: link:../core
       '@types/react':
         specifier: ^19.2.10
         version: 19.2.10
-      konfetti.js:
-        specifier: workspace:*
-        version: link:../core
       react:
         specifier: ^19.2.4
         version: 19.2.4
@@ -50,7 +50,7 @@ importers:
 
   packages/solid:
     devDependencies:
-      konfetti.js:
+      '@konfetti-js/core':
         specifier: workspace:*
         version: link:../core
       solid-js:
@@ -65,7 +65,7 @@ importers:
 
   packages/svelte:
     devDependencies:
-      konfetti.js:
+      '@konfetti-js/core':
         specifier: workspace:*
         version: link:../core
       svelte:
@@ -80,7 +80,7 @@ importers:
 
   packages/vue:
     devDependencies:
-      konfetti.js:
+      '@konfetti-js/core':
         specifier: workspace:*
         version: link:../core
       tsup:
@@ -95,7 +95,7 @@ importers:
 
   packages/web-components:
     devDependencies:
-      konfetti.js:
+      '@konfetti-js/core':
         specifier: workspace:*
         version: link:../core
       tsup:

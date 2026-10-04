@@ -2,7 +2,7 @@
 
 A lightweight, performant confetti animation library for the web. Zero dependencies, TypeScript-first, and optimized for 60fps animations.
 
-[![npm version](https://img.shields.io/npm/v/konfetti.js.svg)](https://www.npmjs.com/package/konfetti.js)
+[![npm version](https://img.shields.io/npm/v/@konfetti-js/core.svg)](https://www.npmjs.com/package/@konfetti-js/core)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Features
@@ -19,40 +19,40 @@ A lightweight, performant confetti animation library for the web. Zero dependenc
 
 | Package | Version | Description |
 |---------|---------|-------------|
-| [konfetti.js](./packages/core) | [![npm](https://img.shields.io/npm/v/konfetti.js.svg)](https://www.npmjs.com/package/konfetti.js) | Core library |
-| [@konfetti/react](./packages/react) | [![npm](https://img.shields.io/npm/v/@konfetti/react.svg)](https://www.npmjs.com/package/@konfetti/react) | React wrapper |
-| [@konfetti/vue](./packages/vue) | [![npm](https://img.shields.io/npm/v/@konfetti/vue.svg)](https://www.npmjs.com/package/@konfetti/vue) | Vue wrapper |
-| [@konfetti/svelte](./packages/svelte) | [![npm](https://img.shields.io/npm/v/@konfetti/svelte.svg)](https://www.npmjs.com/package/@konfetti/svelte) | Svelte wrapper |
-| [@konfetti/solid](./packages/solid) | [![npm](https://img.shields.io/npm/v/@konfetti/solid.svg)](https://www.npmjs.com/package/@konfetti/solid) | Solid wrapper |
-| [@konfetti/web-components](./packages/web-components) | [![npm](https://img.shields.io/npm/v/@konfetti/web-components.svg)](https://www.npmjs.com/package/@konfetti/web-components) | Web Components |
+| [@konfetti-js/core](./packages/core) | [![npm](https://img.shields.io/npm/v/@konfetti-js/core.svg)](https://www.npmjs.com/package/@konfetti-js/core) | Core library |
+| [@konfetti-js/react](./packages/react) | [![npm](https://img.shields.io/npm/v/@konfetti-js/react.svg)](https://www.npmjs.com/package/@konfetti-js/react) | React wrapper |
+| [@konfetti-js/vue](./packages/vue) | [![npm](https://img.shields.io/npm/v/@konfetti-js/vue.svg)](https://www.npmjs.com/package/@konfetti-js/vue) | Vue wrapper |
+| [@konfetti-js/svelte](./packages/svelte) | [![npm](https://img.shields.io/npm/v/@konfetti-js/svelte.svg)](https://www.npmjs.com/package/@konfetti-js/svelte) | Svelte wrapper |
+| [@konfetti-js/solid](./packages/solid) | [![npm](https://img.shields.io/npm/v/@konfetti-js/solid.svg)](https://www.npmjs.com/package/@konfetti-js/solid) | Solid wrapper |
+| [@konfetti-js/web-components](./packages/web-components) | [![npm](https://img.shields.io/npm/v/@konfetti-js/web-components.svg)](https://www.npmjs.com/package/@konfetti-js/web-components) | Web Components |
 
 ## Installation
 
 ### Core Library
 
 ```bash
-npm install konfetti.js
+npm install @konfetti-js/core
 # or
-pnpm add konfetti.js
+pnpm add @konfetti-js/core
 ```
 
 ### Framework Wrappers
 
 ```bash
 # React
-pnpm add @konfetti/react konfetti.js
+pnpm add @konfetti-js/react @konfetti-js/core
 
 # Vue
-pnpm add @konfetti/vue konfetti.js
+pnpm add @konfetti-js/vue @konfetti-js/core
 
 # Svelte
-pnpm add @konfetti/svelte konfetti.js
+pnpm add @konfetti-js/svelte @konfetti-js/core
 
 # Solid
-pnpm add @konfetti/solid konfetti.js
+pnpm add @konfetti-js/solid @konfetti-js/core
 
 # Web Components
-pnpm add @konfetti/web-components konfetti.js
+pnpm add @konfetti-js/web-components @konfetti-js/core
 ```
 
 ## Quick Start
@@ -60,7 +60,7 @@ pnpm add @konfetti/web-components konfetti.js
 ### Vanilla JavaScript
 
 ```javascript
-import { fire, fireworks, cannon, explosion } from 'konfetti.js';
+import { fire, fireworks, cannon, explosion } from '@konfetti-js/core';
 
 // Fire confetti!
 fire();
@@ -74,7 +74,7 @@ explosion();
 ### React
 
 ```tsx
-import { useKonfetti, Konfetti } from '@konfetti/react';
+import { useKonfetti, Konfetti } from '@konfetti-js/react';
 
 // Hook usage
 function App() {
@@ -98,7 +98,7 @@ function App() {
 
 ```vue
 <script setup>
-import { useKonfetti, vKonfetti } from '@konfetti/vue';
+import { useKonfetti, vKonfetti } from '@konfetti-js/vue';
 
 const { fire, fireworks } = useKonfetti();
 </script>
@@ -117,7 +117,7 @@ const { fire, fireworks } = useKonfetti();
 
 ```svelte
 <script>
-  import { konfettiAction, createKonfetti } from '@konfetti/svelte';
+  import { konfettiAction, createKonfetti } from '@konfetti-js/svelte';
 
   const { fire, fireworks } = createKonfetti();
 </script>
@@ -133,7 +133,7 @@ const { fire, fireworks } = useKonfetti();
 ### Solid
 
 ```tsx
-import { useKonfetti, Konfetti } from '@konfetti/solid';
+import { useKonfetti, Konfetti } from '@konfetti-js/solid';
 
 // Hook usage
 function App() {
@@ -157,7 +157,7 @@ function App() {
 
 ```html
 <script type="module">
-  import { defineAllElements } from '@konfetti/web-components';
+  import { defineAllElements } from '@konfetti-js/web-components';
   defineAllElements();
 </script>
 
@@ -197,7 +197,7 @@ function App() {
 ### Presets
 
 ```javascript
-import { cannon, explosion, fireworks, rain, snow, sideCannons, pride, continuous } from 'konfetti.js';
+import { cannon, explosion, fireworks, rain, snow, sideCannons, pride, continuous } from '@konfetti-js/core';
 
 cannon();      // Burst from bottom
 explosion();   // 360 degree burst

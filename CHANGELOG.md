@@ -22,11 +22,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Interactive demo page
 - Monorepo structure with pnpm workspaces
 - Framework wrappers:
-  - `@konfetti/react` - React hook and component
-  - `@konfetti/vue` - Vue composable and directive
-  - `@konfetti/svelte` - Svelte action and store
-  - `@konfetti/solid` - Solid.js hook and component
-  - `@konfetti/web-components` - Custom elements
+  - `@konfetti-js/react` - React hook and component
+  - `@konfetti-js/vue` - Vue composable and directive
+  - `@konfetti-js/svelte` - Svelte action and store
+  - `@konfetti-js/solid` - Solid.js hook and component
+  - `@konfetti-js/web-components` - Custom elements
 
 ### API
 
@@ -36,7 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ```javascript
 // Usage
-import { fire, fireworks, cannon } from 'konfetti.js';
+import { fire, fireworks, cannon } from '@konfetti-js/core';
 
 fire({ particleCount: 100 });
 fireworks();

@@ -9,7 +9,7 @@ import {
   sideCannons,
   pride,
   type KonfettiOptions,
-} from 'konfetti.js';
+} from '@konfetti-js/core';
 
 export interface KonfettiActionOptions extends KonfettiOptions {
   /** Event to trigger konfetti (default: 'click') */
@@ -24,7 +24,7 @@ export interface KonfettiActionOptions extends KonfettiOptions {
  * @example
  * ```svelte
  * <script>
- *   import { konfettiAction } from '@konfetti/svelte';
+ *   import { konfettiAction } from '@konfetti-js/svelte';
  * </script>
  *
  * <!-- Basic usage -->

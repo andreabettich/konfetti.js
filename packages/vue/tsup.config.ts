@@ -5,5 +5,5 @@ export default defineConfig({
   format: ['cjs', 'esm'],
   dts: true,
   clean: true,
-  external: ['vue', 'konfetti.js'],
+  external: ['vue', '@konfetti-js/core'],
 });

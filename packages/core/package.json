@@ -1,5 +1,5 @@
 {
-  "name": "konfetti.js",
+  "name": "@konfetti-js/core",
   "version": "0.2.0",
   "description": "A lightweight, performant confetti animation library for the web",
   "type": "module",

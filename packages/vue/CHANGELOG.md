@@ -1,4 +1,4 @@
-# @konfetti/vue
+# @konfetti-js/vue
 
 ## 1.0.0
 
@@ -9,4 +9,4 @@
 ### Patch Changes
 
 - Updated dependencies [f3d99dc]
-  - konfetti.js@0.2.0
+  - @konfetti-js/core@0.2.0

@@ -1,5 +1,5 @@
 {
-  "name": "@konfetti/svelte",
+  "name": "@konfetti-js/svelte",
   "version": "1.0.0",
   "description": "Svelte wrapper for konfetti.js",
   "type": "module",
@@ -42,11 +42,11 @@
     "directory": "packages/svelte"
   },
   "peerDependencies": {
-    "konfetti.js": ">=0.2.0",
+    "@konfetti-js/core": ">=0.2.0",
     "svelte": ">=4.0.0 || >=5.0.0"
   },
   "devDependencies": {
-    "konfetti.js": "workspace:*",
+    "@konfetti-js/core": "workspace:*",
     "svelte": "^5.53.5",
     "tsup": "^8.3.0",
     "typescript": "^5.9.3"

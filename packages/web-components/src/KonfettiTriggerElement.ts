@@ -8,7 +8,7 @@ import {
   sideCannons,
   pride,
   type KonfettiOptions,
-} from 'konfetti.js';
+} from '@konfetti-js/core';
 
 /**
  * Custom element that fires konfetti on click
@@ -17,7 +17,7 @@ import {
  * ```html
  * <!-- Register the element -->
  * <script type="module">
- *   import { defineKonfettiTriggerElement } from '@konfetti/web-components';
+ *   import { defineKonfettiTriggerElement } from '@konfetti-js/web-components';
  *   defineKonfettiTriggerElement();
  * </script>
  *

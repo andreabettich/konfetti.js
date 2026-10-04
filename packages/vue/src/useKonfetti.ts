@@ -11,7 +11,7 @@ import {
   pride as konfettiPride,
   continuous as konfettiContinuous,
   type KonfettiOptions,
-} from 'konfetti.js';
+} from '@konfetti-js/core';
 
 export interface UseKonfettiReturn {
   /** Fire konfetti with optional options */
@@ -42,7 +42,7 @@ export interface UseKonfettiReturn {
  * @example
  * ```vue
  * <script setup>
- * import { useKonfetti } from '@konfetti/vue';
+ * import { useKonfetti } from '@konfetti-js/vue';
  *
  * const { fire, cannon } = useKonfetti();
  * </script>

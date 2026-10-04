@@ -1,4 +1,4 @@
-# konfetti.js
+# @konfetti-js/core
 
 ## 0.2.0
 

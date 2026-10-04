@@ -11,7 +11,7 @@ import {
   pride as konfettiPride,
   continuous as konfettiContinuous,
   type KonfettiOptions,
-} from 'konfetti.js';
+} from '@konfetti-js/core';
 
 export interface UseKonfettiReturn {
   /** Fire konfetti with optional options */

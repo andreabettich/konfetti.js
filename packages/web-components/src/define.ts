@@ -7,7 +7,7 @@ import { defineKonfettiTriggerElement } from './KonfettiTriggerElement';
  * @example
  * ```html
  * <script type="module">
- *   import { defineAllElements } from '@konfetti/web-components';
+ *   import { defineAllElements } from '@konfetti-js/web-components';
  *   defineAllElements();
  * </script>
  *

@@ -9,7 +9,7 @@ import {
   sideCannons,
   pride,
   type KonfettiOptions,
-} from 'konfetti.js';
+} from '@konfetti-js/core';
 
 export interface KonfettiProps extends KonfettiOptions {
   /** Trigger konfetti when this becomes true */

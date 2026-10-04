@@ -5,7 +5,7 @@ export default defineConfig({
   format: ['cjs', 'esm'],
   dts: true,
   clean: true,
-  external: ['solid-js', 'konfetti.js'],
+  external: ['solid-js', '@konfetti-js/core'],
   esbuildOptions(options) {
     options.jsx = 'preserve';
     options.jsxImportSource = 'solid-js';

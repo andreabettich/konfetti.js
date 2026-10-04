@@ -1,4 +1,4 @@
-# @konfetti/solid
+# @konfetti-js/solid
 
 ## 1.0.0
 
@@ -9,4 +9,4 @@
 ### Patch Changes
 
 - Updated dependencies [f3d99dc]
-  - konfetti.js@0.2.0
+  - @konfetti-js/core@0.2.0

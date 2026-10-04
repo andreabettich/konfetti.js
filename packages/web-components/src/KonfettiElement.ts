@@ -9,7 +9,7 @@ import {
   sideCannons,
   pride,
   type KonfettiOptions,
-} from 'konfetti.js';
+} from '@konfetti-js/core';
 
 /**
  * Custom element for firing konfetti
@@ -18,7 +18,7 @@ import {
  * ```html
  * <!-- Register the element -->
  * <script type="module">
- *   import { defineKonfettiElement } from '@konfetti/web-components';
+ *   import { defineKonfettiElement } from '@konfetti-js/web-components';
  *   defineKonfettiElement();
  * </script>
  *

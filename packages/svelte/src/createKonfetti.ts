@@ -10,7 +10,7 @@ import {
   pride as konfettiPride,
   continuous as konfettiContinuous,
   type KonfettiOptions,
-} from 'konfetti.js';
+} from '@konfetti-js/core';
 
 export interface KonfettiStore {
   /** Fire konfetti with optional options */
@@ -41,7 +41,7 @@ export interface KonfettiStore {
  * @example
  * ```svelte
  * <script>
- *   import { createKonfetti } from '@konfetti/svelte';
+ *   import { createKonfetti } from '@konfetti-js/svelte';
  *
  *   const konfetti = createKonfetti();
  * </script>
