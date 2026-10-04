@@ -297,17 +297,23 @@ for (const tabs of document.querySelectorAll('[data-tabs]')) {
 
 /* Light syntax coloring for the static snippets */
 
+// One pass over the raw source: comments (// at line start or after whitespace,
+// so URLs stay intact, and <!-- -->), single-quoted strings, then numbers.
+// Each piece is escaped on its own, so no markup is ever stripped afterwards.
+const TOKEN = /((?<=^|\s)\/\/[^\n]*|<!--[\s\S]*?-->)|('[^'\n]*')|(\b\d+(?:\.\d+)?\b)/gm;
+
+function highlight(source) {
+  let html = '';
+  let last = 0;
+  for (const match of source.matchAll(TOKEN)) {
+    const kind = match[1] ? 'tok-com' : match[2] ? 'tok-str' : 'tok-num';
+    html += escapeHtml(source.slice(last, match.index));
+    html += `<span class="${kind}">${escapeHtml(match[0])}</span>`;
+    last = match.index + match[0].length;
+  }
+  return html + escapeHtml(source.slice(last));
+}
+
 for (const block of document.querySelectorAll('code[class^="lang-"]')) {
-  const source = block.textContent;
-  let html = escapeHtml(source)
-    // Only treat // as a comment at line start or after whitespace, so URLs stay intact
-    .replace(/(^|\s)(\/\/[^\n]*)/gm, '$1<span class="tok-com">$2</span>')
-    .replace(/(&lt;!--[\s\S]*?--&gt;)/g, '<span class="tok-com">$1</span>')
-    .replace(/('[^'\n]*')/g, '<span class="tok-str">$1</span>')
-    .replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="tok-num">$1</span>');
-  // Undo coloring inside comments so they stay one color
-  html = html.replace(/<span class="tok-com">([\s\S]*?)<\/span>/g, (_match, inner) => {
-    return `<span class="tok-com">${inner.replace(/<[^>]+>/g, '')}</span>`;
-  });
-  block.innerHTML = html;
+  block.innerHTML = highlight(block.textContent);
 }

@@ -243,13 +243,13 @@ setTimeout(stop, 3000);</code></pre>
 
             <div class="tabpanel" role="tabpanel" id="panel-cdn" aria-labelledby="tab-cdn" tabindex="0" hidden>
               <p>No build step needed. The browser bundle puts everything on <code>window.konfetti</code>.</p>
-              <pre><code class="lang-html">&lt;script src="https://cdn.jsdelivr.net/npm/@konfetti-js/core@0.3/dist/konfetti.min.js"&gt;&lt;/script&gt;
+              <pre><code class="lang-html">&lt;script src="https://cdn.jsdelivr.net/npm/@konfetti-js/core@0.4/dist/konfetti.min.js"&gt;&lt;/script&gt;
 &lt;script&gt;
   konfetti.fire({ particleCount: 100 });
 &lt;/script&gt;</code></pre>
               <p>Or import the ES module directly:</p>
               <pre><code class="lang-html">&lt;script type="module"&gt;
-  import { fireworks } from 'https://cdn.jsdelivr.net/npm/@konfetti-js/core@0.3/+esm';
+  import { fireworks } from 'https://cdn.jsdelivr.net/npm/@konfetti-js/core@0.4/+esm';
   fireworks();
 &lt;/script&gt;</code></pre>
             </div>
