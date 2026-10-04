@@ -1,6 +1,6 @@
 {
   "name": "@konfetti-js/core",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "A lightweight, performant confetti animation library for the web",
   "type": "module",
   "main": "./dist/index.cjs",
