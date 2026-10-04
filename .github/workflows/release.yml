@@ -33,6 +33,14 @@ jobs:
       - name: Build
         run: pnpm run build
 
+      # Same gates as CI, so nothing is published from a broken commit
+      - name: Verify
+        run: |
+          pnpm run check
+          pnpm run typecheck
+          pnpm test
+          pnpm run check:packages
+
       - name: Create Release PR or Publish
         uses: changesets/action@v1
         with:
