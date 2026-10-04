@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>konfetti.js – confetti for the web</title>
+    <meta
+      name="description"
+      content="A tiny, zero-dependency confetti library for the web, with wrappers for React, Vue, Svelte, Solid and Web Components."
+    />
+    <meta property="og:title" content="konfetti.js" />
+    <meta
+      property="og:description"
+      content="Confetti for the web. One function call, zero dependencies."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://andreabettich.github.io/konfetti.js/" />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Anybody:wdth,wght@50..150,100..900&family=IBM+Plex+Mono:wght@400;500&family=Schibsted+Grotesk:wght@400..700&display=swap"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <script type="module" src="app.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#playground">Skip to the playground</a>
+
+    <header class="topbar">
+      <div class="wrap topbar-inner">
+        <a class="brand" href="./">konfetti.js</a>
+        <nav aria-label="Sections">
+          <ul class="nav">
+            <li><a href="#playground">Playground</a></li>
+            <li><a href="#install">Install</a></li>
+            <li><a href="#api">API</a></li>
+            <li><a href="https://github.com/andreabettich/konfetti.js">GitHub</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero" id="hero" aria-labelledby="hero-title">
+        <div class="wrap">
+          <h1 class="wordmark" id="hero-title">
+            <span class="ink ink-blue">konfetti</span>
+            <span class="ink ink-pink" aria-hidden="true">konfetti</span>
+          </h1>
+          <div class="hero-body">
+            <p class="lead">
+              Confetti for the web. One function call, zero dependencies, about 4&nbsp;kB
+              gzipped. Works on its own or with React, Vue, Svelte, Solid and Web Components.
+            </p>
+            <div class="hero-actions">
+              <button type="button" class="btn btn-primary" id="hero-fire">Fire confetti</button>
+              <div class="cmd">
+                <code id="hero-cmd">npm install @konfetti-js/core</code>
+                <button type="button" class="btn-copy" data-copy-target="hero-cmd">Copy</button>
+              </div>
+            </div>
+            <p class="hint">Click or tap anywhere in this top section to fire from that spot.</p>
+          </div>
+          <div class="motion-note" id="motion-note" hidden>
+            <p>
+              Your system asks for reduced motion, so konfetti.js skips animations by default.
+              That is the <code>disableForReducedMotion</code> option at work.
+            </p>
+            <label class="check">
+              <input type="checkbox" id="motion-override" />
+              Play animations on this page anyway
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="playground" aria-labelledby="playground-title">
+        <div class="wrap">
+          <h2 id="playground-title">Playground</h2>
+          <p class="section-lead">
+            Try a preset, or tune the options and fire your own. The code updates as you go,
+            ready to paste.
+          </p>
+
+          <div class="presets" role="group" aria-label="Presets">
+            <button type="button" class="chip" data-preset="cannon">Cannon</button>
+            <button type="button" class="chip" data-preset="explosion">Explosion</button>
+            <button type="button" class="chip" data-preset="fireworks">Fireworks</button>
+            <button type="button" class="chip" data-preset="rain">Rain</button>
+            <button type="button" class="chip" data-preset="snow">Snow</button>
+            <button type="button" class="chip" data-preset="sideCannons">Side cannons</button>
+            <button type="button" class="chip" data-preset="pride">Pride</button>
+            <button type="button" class="chip" id="stream-toggle" aria-pressed="false">
+              Start stream
+            </button>
+          </div>
+
+          <div class="lab">
+            <form class="controls" id="controls" aria-label="Options">
+              <div class="sliders">
+                <label class="slider">
+                  <span class="slider-head"
+                    ><span>Particles</span><output data-for="particleCount"></output
+                  ></span>
+                  <input type="range" name="particleCount" min="5" max="300" step="5" value="50" />
+                </label>
+                <label class="slider">
+                  <span class="slider-head"
+                    ><span>Angle</span><output data-for="angle" data-unit="°"></output
+                  ></span>
+                  <input type="range" name="angle" min="0" max="360" step="5" value="90" />
+                </label>
+                <label class="slider">
+                  <span class="slider-head"
+                    ><span>Spread</span><output data-for="spread" data-unit="°"></output
+                  ></span>
+                  <input type="range" name="spread" min="0" max="360" step="5" value="45" />
+                </label>
+                <label class="slider">
+                  <span class="slider-head"
+                    ><span>Start velocity</span><output data-for="startVelocity"></output
+                  ></span>
+                  <input type="range" name="startVelocity" min="5" max="100" step="1" value="45" />
+                </label>
+                <label class="slider">
+                  <span class="slider-head"
+                    ><span>Gravity</span><output data-for="gravity"></output
+                  ></span>
+                  <input type="range" name="gravity" min="0" max="3" step="0.1" value="1" />
+                </label>
+                <label class="slider">
+                  <span class="slider-head"><span>Decay</span><output data-for="decay"></output></span>
+                  <input type="range" name="decay" min="0.8" max="0.99" step="0.01" value="0.9" />
+                </label>
+                <label class="slider">
+                  <span class="slider-head"><span>Drift</span><output data-for="drift"></output></span>
+                  <input type="range" name="drift" min="-3" max="3" step="0.1" value="0" />
+                </label>
+                <label class="slider">
+                  <span class="slider-head"><span>Size</span><output data-for="scalar"></output></span>
+                  <input type="range" name="scalar" min="0.5" max="3" step="0.1" value="1" />
+                </label>
+                <label class="slider">
+                  <span class="slider-head"
+                    ><span>Lifetime (frames)</span><output data-for="ticks"></output
+                  ></span>
+                  <input type="range" name="ticks" min="50" max="600" step="10" value="200" />
+                </label>
+                <label class="slider">
+                  <span class="slider-head"
+                    ><span>Origin x</span><output data-for="originX"></output
+                  ></span>
+                  <input type="range" name="originX" min="0" max="1" step="0.05" value="0.5" />
+                </label>
+                <label class="slider">
+                  <span class="slider-head"
+                    ><span>Origin y</span><output data-for="originY"></output
+                  ></span>
+                  <input type="range" name="originY" min="0" max="1" step="0.05" value="0.5" />
+                </label>
+              </div>
+
+              <fieldset class="swatches">
+                <legend>Colors</legend>
+                <div class="swatch-row">
+                  <input type="color" name="color" value="#ff48b0" aria-label="Color 1" />
+                  <input type="color" name="color" value="#0078bf" aria-label="Color 2" />
+                  <input type="color" name="color" value="#ffe800" aria-label="Color 3" />
+                  <input type="color" name="color" value="#00a95c" aria-label="Color 4" />
+                  <input type="color" name="color" value="#ff6c2f" aria-label="Color 5" />
+                </div>
+              </fieldset>
+
+              <fieldset class="shapes">
+                <legend>Shapes</legend>
+                <label class="check"
+                  ><input type="checkbox" name="shape" value="circle" checked /> Circles</label
+                >
+                <label class="check"
+                  ><input type="checkbox" name="shape" value="square" checked /> Squares</label
+                >
+              </fieldset>
+
+              <button type="reset" class="btn btn-quiet">Reset options</button>
+            </form>
+
+            <div class="output">
+              <div class="code-sheet">
+                <div class="code-bar">
+                  <span class="code-name">Your call</span>
+                  <button type="button" class="btn-copy" data-copy-target="play-code">Copy</button>
+                </div>
+                <pre><code id="play-code"></code></pre>
+              </div>
+              <button type="button" class="btn btn-primary btn-wide" id="play-fire">
+                Fire with these options
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="install" aria-labelledby="install-title">
+        <div class="wrap">
+          <h2 id="install-title">Install and use</h2>
+          <p class="section-lead">
+            The core package does the work. Each framework package is a thin wrapper that
+            installs core for you.
+          </p>
+
+          <div class="tabs" data-tabs>
+            <div class="tablist" role="tablist" aria-label="Framework">
+              <button type="button" role="tab" id="tab-js" aria-controls="panel-js" aria-selected="true">JavaScript</button>
+              <button type="button" role="tab" id="tab-cdn" aria-controls="panel-cdn" aria-selected="false" tabindex="-1">CDN</button>
+              <button type="button" role="tab" id="tab-react" aria-controls="panel-react" aria-selected="false" tabindex="-1">React</button>
+              <button type="button" role="tab" id="tab-vue" aria-controls="panel-vue" aria-selected="false" tabindex="-1">Vue</button>
+              <button type="button" role="tab" id="tab-svelte" aria-controls="panel-svelte" aria-selected="false" tabindex="-1">Svelte</button>
+              <button type="button" role="tab" id="tab-solid" aria-controls="panel-solid" aria-selected="false" tabindex="-1">Solid</button>
+              <button type="button" role="tab" id="tab-wc" aria-controls="panel-wc" aria-selected="false" tabindex="-1">Web Components</button>
+            </div>
+
+            <div class="tabpanel" role="tabpanel" id="panel-js" aria-labelledby="tab-js" tabindex="0">
+              <pre class="cmd-block"><code>npm install @konfetti-js/core</code></pre>
+              <pre><code class="lang-js">import { fire, cannon, continuous } from '@konfetti-js/core';
+
+// A burst from the middle of the screen
+fire();
+
+// Tune it
+fire({ particleCount: 120, spread: 70, origin: { x: 0.5, y: 0.8 } });
+
+// Use a preset, and override any of its options
+cannon({ colors: ['#ff48b0', '#0078bf'] });
+
+// A steady stream; call the returned function to stop it
+const stop = continuous();
+setTimeout(stop, 3000);</code></pre>
+            </div>
+
+            <div class="tabpanel" role="tabpanel" id="panel-cdn" aria-labelledby="tab-cdn" tabindex="0" hidden>
+              <p>No build step needed. The browser bundle puts everything on <code>window.konfetti</code>.</p>
+              <pre><code class="lang-html">&lt;script src="https://cdn.jsdelivr.net/npm/@konfetti-js/core@0.3/dist/konfetti.min.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  konfetti.fire({ particleCount: 100 });
+&lt;/script&gt;</code></pre>
+              <p>Or import the ES module directly:</p>
+              <pre><code class="lang-html">&lt;script type="module"&gt;
+  import { fireworks } from 'https://cdn.jsdelivr.net/npm/@konfetti-js/core@0.3/+esm';
+  fireworks();
+&lt;/script&gt;</code></pre>
+            </div>
+
+            <div class="tabpanel" role="tabpanel" id="panel-react" aria-labelledby="tab-react" tabindex="0" hidden>
+              <pre class="cmd-block"><code>npm install @konfetti-js/react</code></pre>
+              <pre><code class="lang-jsx">import { useState } from 'react';
+import { useKonfetti, Konfetti } from '@konfetti-js/react';
+
+// Hook: call the functions from your own handlers
+function SaveButton() {
+  const { cannon } = useKonfetti();
+  return &lt;button onClick={() =&gt; cannon()}&gt;Save&lt;/button&gt;;
+}
+
+// Component: fires when `fire` turns true
+function Celebration() {
+  const [done, setDone] = useState(false);
+  return (
+    &lt;&gt;
+      &lt;button onClick={() =&gt; setDone(true)}&gt;Finish&lt;/button&gt;
+      &lt;Konfetti fire={done} preset="fireworks" onFired={() =&gt; setDone(false)} /&gt;
+    &lt;/&gt;
+  );
+}</code></pre>
+            </div>
+
+            <div class="tabpanel" role="tabpanel" id="panel-vue" aria-labelledby="tab-vue" tabindex="0" hidden>
+              <pre class="cmd-block"><code>npm install @konfetti-js/vue</code></pre>
+              <pre><code class="lang-html">&lt;script setup&gt;
+import { useKonfetti, vKonfetti } from '@konfetti-js/vue';
+
+const { fire } = useKonfetti();
+&lt;/script&gt;
+
+&lt;template&gt;
+  &lt;!-- Composable --&gt;
+  &lt;button @click="fire({ particleCount: 100 })"&gt;Celebrate&lt;/button&gt;
+
+  &lt;!-- Directive: fires from the element on click --&gt;
+  &lt;button v-konfetti&gt;Click me&lt;/button&gt;
+  &lt;button v-konfetti="{ preset: 'fireworks' }"&gt;Fireworks&lt;/button&gt;
+&lt;/template&gt;</code></pre>
+            </div>
+
+            <div class="tabpanel" role="tabpanel" id="panel-svelte" aria-labelledby="tab-svelte" tabindex="0" hidden>
+              <pre class="cmd-block"><code>npm install @konfetti-js/svelte</code></pre>
+              <pre><code class="lang-html">&lt;script&gt;
+  import { konfettiAction, createKonfetti } from '@konfetti-js/svelte';
+
+  const { fire } = createKonfetti();
+&lt;/script&gt;
+
+&lt;!-- Action: fires from the element on click --&gt;
+&lt;button use:konfettiAction&gt;Click me&lt;/button&gt;
+&lt;button use:konfettiAction={{ preset: 'fireworks' }}&gt;Fireworks&lt;/button&gt;
+
+&lt;!-- Functions --&gt;
+&lt;button onclick={() =&gt; fire()}&gt;Celebrate&lt;/button&gt;</code></pre>
+            </div>
+
+            <div class="tabpanel" role="tabpanel" id="panel-solid" aria-labelledby="tab-solid" tabindex="0" hidden>
+              <pre class="cmd-block"><code>npm install @konfetti-js/solid</code></pre>
+              <pre><code class="lang-jsx">import { createSignal } from 'solid-js';
+import { useKonfetti, Konfetti } from '@konfetti-js/solid';
+
+function SaveButton() {
+  const { cannon } = useKonfetti();
+  return &lt;button onClick={() =&gt; cannon()}&gt;Save&lt;/button&gt;;
+}
+
+function Celebration() {
+  const [done, setDone] = createSignal(false);
+  return (
+    &lt;&gt;
+      &lt;button onClick={() =&gt; setDone(true)}&gt;Finish&lt;/button&gt;
+      &lt;Konfetti fire={done()} preset="fireworks" onFired={() =&gt; setDone(false)} /&gt;
+    &lt;/&gt;
+  );
+}</code></pre>
+            </div>
+
+            <div class="tabpanel" role="tabpanel" id="panel-wc" aria-labelledby="tab-wc" tabindex="0" hidden>
+              <pre class="cmd-block"><code>npm install @konfetti-js/web-components</code></pre>
+              <pre><code class="lang-html">&lt;script type="module"&gt;
+  import { defineAllElements } from '@konfetti-js/web-components';
+  defineAllElements();
+&lt;/script&gt;
+
+&lt;!-- Fires when anything inside is clicked --&gt;
+&lt;konfetti-trigger preset="fireworks"&gt;
+  &lt;button&gt;Click me&lt;/button&gt;
+&lt;/konfetti-trigger&gt;
+
+&lt;!-- Fire it from your own code --&gt;
+&lt;konfetti-burst id="burst" preset="cannon"&gt;&lt;/konfetti-burst&gt;
+&lt;script&gt;
+  document.getElementById('burst').fire();
+&lt;/script&gt;</code></pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="api" aria-labelledby="api-title">
+        <div class="wrap">
+          <h2 id="api-title">API</h2>
+
+          <div class="api-block">
+            <h3><code>fire(options?)</code></h3>
+            <p>
+              Fires one burst on a full-screen canvas that is created on first use and sits
+              above your page without blocking clicks. Every option is optional.
+            </p>
+            <div class="table-scroll">
+              <table class="options">
+                <thead>
+                  <tr><th scope="col">Option</th><th scope="col">Default</th><th scope="col">What it does</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td><code>particleCount</code></td><td><code>50</code></td><td>How many pieces to fire.</td></tr>
+                  <tr><td><code>angle</code></td><td><code>90</code></td><td>Launch direction in degrees. 90 is straight up, 0 is right.</td></tr>
+                  <tr><td><code>spread</code></td><td><code>45</code></td><td>How far pieces fan out from the angle, in degrees. 360 fires in every direction.</td></tr>
+                  <tr><td><code>startVelocity</code></td><td><code>45</code></td><td>Launch speed.</td></tr>
+                  <tr><td><code>decay</code></td><td><code>0.9</code></td><td>How quickly pieces slow down. Lower values stop them sooner.</td></tr>
+                  <tr><td><code>gravity</code></td><td><code>1</code></td><td>How strongly pieces fall. 0 lets them float.</td></tr>
+                  <tr><td><code>drift</code></td><td><code>0</code></td><td>Sideways push. Negative drifts left, positive drifts right.</td></tr>
+                  <tr><td><code>ticks</code></td><td><code>200</code></td><td>How long pieces live, in frames at 60&nbsp;fps (200 is about 3.3 seconds on any screen).</td></tr>
+                  <tr><td><code>origin</code></td><td><code>{ x: 0.5, y: 0.5 }</code></td><td>Where pieces start, from 0 to 1 across and down the viewport.</td></tr>
+                  <tr><td><code>colors</code></td><td>seven bright colors</td><td>List of CSS colors such as <code>'#ff48b0'</code> or <code>'gold'</code>.</td></tr>
+                  <tr><td><code>shapes</code></td><td><code>['circle', 'square']</code></td><td>Which shapes to draw.</td></tr>
+                  <tr><td><code>scalar</code></td><td><code>1</code></td><td>Size multiplier for every piece.</td></tr>
+                  <tr><td><code>zIndex</code></td><td><code>100</code></td><td>Stacking order of the canvas.</td></tr>
+                  <tr><td><code>disableForReducedMotion</code></td><td><code>true</code></td><td>Skip the animation when the visitor has asked their system for reduced motion.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="api-block">
+            <h3>Presets</h3>
+            <p>
+              Ready-made effects. Each takes the same options as <code>fire</code>, and anything
+              you pass overrides the preset’s own values. To pick one by name, use
+              <code>firePreset('snow', options)</code>.
+            </p>
+            <dl class="presets-list">
+              <div><dt><code>cannon()</code></dt><dd>A burst shooting up from the bottom of the screen.</dd></div>
+              <div><dt><code>explosion()</code></dt><dd>A burst in every direction from the center.</dd></div>
+              <div><dt><code>fireworks()</code></dt><dd>Three quick bursts across the top half.</dd></div>
+              <div><dt><code>rain()</code></dt><dd>Pieces falling from the top.</dd></div>
+              <div><dt><code>snow()</code></dt><dd>Slow white flakes drifting down.</dd></div>
+              <div><dt><code>sideCannons()</code></dt><dd>Two bursts aimed in from the left and right edges.</dd></div>
+              <div><dt><code>pride()</code></dt><dd>A burst in rainbow colors.</dd></div>
+              <div><dt><code>continuous(options?, interval?)</code></dt><dd>A steady stream, one small burst every <code>interval</code> milliseconds (250 by default). Returns a function that stops it.</dd></div>
+            </dl>
+          </div>
+
+          <div class="api-block">
+            <h3><code>fireFromElement(element, options?)</code></h3>
+            <p>
+              Fires from the center of an element, such as the button that was just clicked. Add
+              <code>preset</code> to the options to fire a preset instead. Single bursts like
+              <code>cannon</code> start at the element; screen-wide presets like
+              <code>fireworks</code> keep their own positions.
+            </p>
+            <pre><code class="lang-js">import { fireFromElement } from '@konfetti-js/core';
+
+button.addEventListener('click', () =&gt; {
+  fireFromElement(button, { preset: 'explosion', particleCount: 60 });
+});</code></pre>
+          </div>
+
+          <div class="api-block">
+            <h3><code>reset()</code> and <code>destroy()</code></h3>
+            <p>
+              <code>reset()</code> clears every piece from the screen and cancels bursts and
+              streams that are still scheduled. <code>destroy()</code> also removes the canvas;
+              the next <code>fire()</code> creates a new one.
+            </p>
+          </div>
+
+          <div class="api-block">
+            <h3><code>create(canvas, options?)</code></h3>
+            <p>
+              Draws into a canvas you provide instead of the full-screen one, for example to
+              keep confetti inside a card. Returns a fire function that also has
+              <code>preset()</code>, <code>continuous()</code>, <code>reset()</code> and
+              <code>destroy()</code>. Pass
+              <code>{ resize: false }</code> to stop it from following window resizes.
+            </p>
+            <pre><code class="lang-js">import { create } from '@konfetti-js/core';
+
+const burst = create(document.querySelector('#card-canvas'));
+burst({ particleCount: 80, origin: { x: 0.5, y: 1 } });
+burst.preset('pride');
+
+// When the card goes away
+burst.destroy();</code></pre>
+          </div>
+
+          <div class="api-block">
+            <h3>Accessibility</h3>
+            <p>
+              konfetti.js respects <code>prefers-reduced-motion</code>. When a visitor has asked
+              for reduced motion, nothing animates unless you pass
+              <code>disableForReducedMotion: false</code>. The canvas is hidden from assistive
+              technology and ignores pointer events, so it never gets in the way of your page.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="wrap footer-inner">
+        <p>MIT licensed. Made by Andrea Bettich.</p>
+        <ul class="footer-links">
+          <li><a href="https://github.com/andreabettich/konfetti.js">Source on GitHub</a></li>
+          <li><a href="https://www.npmjs.com/package/@konfetti-js/core">npm</a></li>
+          <li><a href="https://github.com/andreabettich/konfetti.js/blob/main/packages/core/CHANGELOG.md">Changelog</a></li>
+        </ul>
+      </div>
+    </footer>
+
+    <p class="sr-only" aria-live="polite" id="announcer"></p>
+  </body>
+</html>
