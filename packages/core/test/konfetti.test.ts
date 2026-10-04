@@ -9,7 +9,13 @@ async function loadCore() {
   return import('../src/index');
 }
 
-const isRed = (color: string) => ['#f00', '#ff0000', 'red', 'rgb(255, 0, 0)'].includes(color);
+/** A shade of pure red as the canvas reads it back: darker, or lightened toward white */
+const isRed = (color: string) => {
+  const match = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/.exec(color);
+  if (!match) return false;
+  const [r, g, b] = match.slice(1).map((hex) => Number.parseInt(hex, 16));
+  return r > 0 && g === b && g < r;
+};
 
 describe('animation lifecycle', () => {
   it('keeps animating after the page was hidden and shown while idle', async () => {
@@ -274,8 +280,9 @@ describe('timing and rendering', () => {
 
   it('keeps the color list small while a stream with random colors runs', async () => {
     const { Konfetti } = await loadCore();
+    const { ParticleIndex } = await import('../src/types');
     const k = new Konfetti();
-    const color = (i: number) => `#${i.toString(16).padStart(6, '0')}`;
+    const color = (i: number) => `#${(i * 2731).toString(16).padStart(6, '0').slice(-6)}`;
 
     // One short-lived piece per frame in a new color: the screen is never empty
     for (let i = 0; i < 600; i++) {
@@ -283,12 +290,17 @@ describe('timing and rendering', () => {
       env.clock.step();
     }
 
-    const pool = (k as unknown as { pool: { palette: string[] } }).pool;
+    const pool = (
+      k as unknown as { pool: { palette: string[]; data: Float32Array; activeCount: number } }
+    ).pool;
     expect(pool.palette.length).toBeLessThanOrEqual(257);
-    // The live pieces still draw in their own colors
+    // Live pieces still point at their own colors after the palette was renumbered
     const recent = new Set([595, 596, 597, 598, 599].map(color));
-    expect(env.ctx.draws.length).toBeGreaterThan(0);
-    expect(env.ctx.draws.every((d) => recent.has(d.fillStyle))).toBe(true);
+    expect(pool.activeCount).toBeGreaterThan(0);
+    for (let i = 0; i < pool.activeCount; i++) {
+      const colorId = pool.data[i * ParticleIndex.SIZE + ParticleIndex.Color];
+      expect(recent.has(pool.palette[colorId])).toBe(true);
+    }
     k.destroy();
   });
 

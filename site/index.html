@@ -52,8 +52,9 @@
           </h1>
           <div class="hero-body">
             <p class="lead">
-              Confetti for the web. One function call, zero dependencies, about 4&nbsp;kB
-              gzipped. Works on its own or with React, Vue, Svelte, Solid and Web Components.
+              Confetti for the web that behaves like paper: pieces tumble, catch the light and
+              float down. One function call, zero dependencies, about 5&nbsp;kB gzipped. Works on
+              its own or with React, Vue, Svelte, Solid and Web Components.
             </p>
             <div class="hero-actions">
               <button type="button" class="btn btn-primary" id="hero-fire">Fire confetti</button>
@@ -136,7 +137,7 @@
                   <input type="range" name="decay" min="0.8" max="0.99" step="0.01" value="0.9" />
                 </label>
                 <label class="slider">
-                  <span class="slider-head"><span>Drift</span><output data-for="drift"></output></span>
+                  <span class="slider-head"><span>Wind</span><output data-for="drift"></output></span>
                   <input type="range" name="drift" min="-3" max="3" step="0.1" value="0" />
                 </label>
                 <label class="slider">
@@ -145,9 +146,9 @@
                 </label>
                 <label class="slider">
                   <span class="slider-head"
-                    ><span>Lifetime (frames)</span><output data-for="ticks"></output
+                    ><span>Max lifetime (frames)</span><output data-for="ticks"></output
                   ></span>
-                  <input type="range" name="ticks" min="50" max="600" step="10" value="200" />
+                  <input type="range" name="ticks" min="100" max="1500" step="50" value="600" />
                 </label>
                 <label class="slider">
                   <span class="slider-head"
@@ -361,7 +362,9 @@ function Celebration() {
             <h3><code>fire(options?)</code></h3>
             <p>
               Fires one burst on a full-screen canvas that is created on first use and sits
-              above your page without blocking clicks. Every option is optional.
+              above your page without blocking clicks. Each piece is a little sheet of paper: it
+              tumbles in 3D, gets lighter and darker as it turns, slows down in the air and
+              sways on its way down. Every option is optional.
             </p>
             <div class="table-scroll">
               <table class="options">
@@ -373,10 +376,10 @@ function Celebration() {
                   <tr><td><code>angle</code></td><td><code>90</code></td><td>Launch direction in degrees. 90 is straight up, 0 is right.</td></tr>
                   <tr><td><code>spread</code></td><td><code>45</code></td><td>How far pieces fan out from the angle, in degrees. 360 fires in every direction.</td></tr>
                   <tr><td><code>startVelocity</code></td><td><code>45</code></td><td>Launch speed.</td></tr>
-                  <tr><td><code>decay</code></td><td><code>0.9</code></td><td>How quickly pieces slow down. Lower values stop them sooner.</td></tr>
+                  <tr><td><code>decay</code></td><td><code>0.9</code></td><td>Air resistance: how quickly pieces slow down. Lower values stop them sooner.</td></tr>
                   <tr><td><code>gravity</code></td><td><code>1</code></td><td>How strongly pieces fall. 0 lets them float.</td></tr>
-                  <tr><td><code>drift</code></td><td><code>0</code></td><td>Sideways push. Negative drifts left, positive drifts right.</td></tr>
-                  <tr><td><code>ticks</code></td><td><code>200</code></td><td>How long pieces live, in frames at 60&nbsp;fps (200 is about 3.3 seconds on any screen).</td></tr>
+                  <tr><td><code>drift</code></td><td><code>0</code></td><td>Wind. Negative blows left, positive blows right.</td></tr>
+                  <tr><td><code>ticks</code></td><td><code>600</code></td><td>Longest a piece may live, in frames at 60&nbsp;fps (600 is 10 seconds). Pieces disappear once they leave the screen, which usually comes first.</td></tr>
                   <tr><td><code>origin</code></td><td><code>{ x: 0.5, y: 0.5 }</code></td><td>Where pieces start, from 0 to 1 across and down the viewport.</td></tr>
                   <tr><td><code>colors</code></td><td>seven bright colors</td><td>List of CSS colors such as <code>'#ff48b0'</code> or <code>'gold'</code>.</td></tr>
                   <tr><td><code>shapes</code></td><td><code>['circle', 'square']</code></td><td>Which shapes to draw.</td></tr>

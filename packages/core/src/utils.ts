@@ -25,7 +25,7 @@ export const DEFAULT_OPTIONS: ResolvedOptions = {
   decay: 0.9,
   gravity: 1,
   drift: 0,
-  ticks: 200,
+  ticks: 600,
   origin: { x: 0.5, y: 0.5 },
   colors: DEFAULT_COLORS,
   shapes: ['circle', 'square'] as ShapeType[],
@@ -114,6 +114,13 @@ export function degToRad(deg: number): number {
  */
 export function randomRange(min: number, max: number): number {
   return Math.random() * (max - min) + min;
+}
+
+/**
+ * -1 or 1 at random
+ */
+export function randomSign(): number {
+  return Math.random() < 0.5 ? -1 : 1;
 }
 
 /**

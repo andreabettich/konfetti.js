@@ -5,6 +5,62 @@ import { ParticleIndex } from './types';
 /** Base particle size in CSS pixels */
 const BASE_SIZE = 10;
 
+/** Number of precomputed brightness steps per color */
+const SHADE_STEPS = 16;
+/** Brightness of a piece facing away from the light, and of one facing it */
+const MIN_BRIGHTNESS = 0.55;
+const MAX_BRIGHTNESS = 1.2;
+/** Share of the lifetime at its end during which a piece still on screen fades out */
+const LIFETIME_FADE = 0.1;
+/** Cap on cached colors; well above the palette size, so live colors never thrash */
+const MAX_SHADE_CACHE = 4096;
+
+type Rgba = [number, number, number, number];
+
+/** What an unset canvas fill draws, used for colors the canvas rejects */
+const BLACK: Rgba = [0, 0, 0, 1];
+
+/**
+ * Read any CSS color as RGBA by letting the canvas normalize it. A canvas
+ * ignores invalid colors, so the color is applied over two different sentinels:
+ * if the results differ, the canvas rejected it.
+ */
+function parseColor(ctx: CanvasRenderingContext2D, color: string): Rgba | null {
+  ctx.fillStyle = '#000000';
+  ctx.fillStyle = color;
+  const overBlack = String(ctx.fillStyle);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillStyle = color;
+  if (String(ctx.fillStyle) !== overBlack) return null;
+
+  const hex = /^#([0-9a-f]{6})$/i.exec(overBlack);
+  if (hex) {
+    const value = Number.parseInt(hex[1], 16);
+    return [value >> 16, (value >> 8) & 255, value & 255, 1];
+  }
+  const rgba = /^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?/.exec(overBlack);
+  if (!rgba) return null;
+  const alpha = rgba[4] === undefined ? 1 : Number(rgba[4]);
+  return [Number(rgba[1]), Number(rgba[2]), Number(rgba[3]), alpha];
+}
+
+/**
+ * Brightness steps for one color: darker below 1, toward white above 1.
+ * Transparency is kept.
+ */
+function buildShades([r, g, b, alpha]: Rgba): string[] {
+  const shades: string[] = [];
+  for (let step = 0; step < SHADE_STEPS; step++) {
+    const brightness =
+      MIN_BRIGHTNESS + ((MAX_BRIGHTNESS - MIN_BRIGHTNESS) * step) / (SHADE_STEPS - 1);
+    const [sr, sg, sb] = [r, g, b].map((c) =>
+      Math.round(brightness <= 1 ? c * brightness : c + (255 - c) * (brightness - 1))
+    );
+    shades.push(alpha < 1 ? `rgba(${sr}, ${sg}, ${sb}, ${alpha})` : `rgb(${sr}, ${sg}, ${sb})`);
+  }
+  return shades;
+}
+
 /**
  * Create a full-screen overlay canvas that never blocks the page
  */
@@ -37,7 +93,9 @@ export class Renderer {
   private width = 0;
   private height = 0;
   private pixelRatio = 1;
-  /** Particle indices grouped by palette color, reused between frames */
+  /** Brightness steps per color */
+  private readonly shadeCache = new Map<string, string[]>();
+  /** Particle indices grouped by color and shade step, reused between frames */
   private readonly buckets: number[][] = [];
 
   constructor(canvas?: HTMLCanvasElement) {
@@ -92,7 +150,10 @@ export class Renderer {
   }
 
   /**
-   * Draw all particles, batched by color to limit fillStyle changes
+   * Draw every piece as flat paper turned in 3D: the transform is the piece's
+   * rotation projected onto the screen (computed by physics), and its color is
+   * shaded by how much its visible side faces the light. Pieces are drawn
+   * grouped by color and shade, so the fill changes once per group.
    */
   render(pool: ParticlePool): void {
     this.clear();
@@ -103,42 +164,37 @@ export class Renderer {
     const ratio = this.pixelRatio;
     const buckets = this.buckets;
 
-    for (const bucket of buckets) bucket.length = 0;
+    // Keys are color × shade, so the array has holes
+    for (const bucket of buckets) if (bucket) bucket.length = 0;
     for (let i = 0; i < pool.activeCount; i++) {
-      const colorId = data[i * ParticleIndex.SIZE + ParticleIndex.Color];
-      if (!buckets[colorId]) buckets[colorId] = [];
-      buckets[colorId].push(i);
+      const idx = i * ParticleIndex.SIZE;
+      const step = Math.round(data[idx + ParticleIndex.Light] * (SHADE_STEPS - 1));
+      const key = data[idx + ParticleIndex.Color] * SHADE_STEPS + step;
+      if (!buckets[key]) buckets[key] = [];
+      buckets[key].push(idx);
     }
 
-    for (let colorId = 0; colorId < buckets.length; colorId++) {
-      const bucket = buckets[colorId];
+    for (let key = 0; key < buckets.length; key++) {
+      const bucket = buckets[key];
       if (!bucket || bucket.length === 0) continue;
-      ctx.fillStyle = pool.palette[colorId];
+      const color = pool.palette[Math.floor(key / SHADE_STEPS)];
+      ctx.fillStyle = this.shadesFor(ctx, color)[key % SHADE_STEPS];
 
-      for (const particle of bucket) {
-        const idx = particle * ParticleIndex.SIZE;
-        const tilt = data[idx + ParticleIndex.Tilt];
-        const rotation = data[idx + ParticleIndex.Rotation];
-
-        // Fade out over the last half of the particle's life
+      for (const idx of bucket) {
+        // Pieces normally fall out of view; fade only if the lifetime runs out first
         const opacity = Math.min(
           1,
-          (data[idx + ParticleIndex.Life] / data[idx + ParticleIndex.MaxLife]) * 2
+          data[idx + ParticleIndex.Life] / (data[idx + ParticleIndex.MaxLife] * LIFETIME_FADE)
         );
-        const size = BASE_SIZE * data[idx + ParticleIndex.Scalar] * (0.8 + 0.2 * Math.cos(tilt));
+        const size = BASE_SIZE * data[idx + ParticleIndex.Scalar];
         if (size < 0.5 || opacity < 0.01) continue;
 
-        // translate(x, y) · rotate(rotation) · scale(1, squash), scaled to device pixels.
-        // Setting the matrix directly avoids a save()/restore() per particle.
-        const cos = Math.cos(rotation);
-        const sin = Math.sin(rotation);
-        const squash = 0.6 + 0.4 * Math.abs(Math.cos(tilt));
         ctx.globalAlpha = opacity;
         ctx.setTransform(
-          ratio * cos,
-          ratio * sin,
-          -ratio * sin * squash,
-          ratio * cos * squash,
+          ratio * data[idx + ParticleIndex.AxisXX],
+          ratio * data[idx + ParticleIndex.AxisXY],
+          ratio * data[idx + ParticleIndex.AxisYX],
+          ratio * data[idx + ParticleIndex.AxisYY],
           ratio * data[idx + ParticleIndex.X],
           ratio * data[idx + ParticleIndex.Y]
         );
@@ -148,6 +204,16 @@ export class Renderer {
 
     ctx.globalAlpha = 1;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
+  }
+
+  private shadesFor(ctx: CanvasRenderingContext2D, color: string): string[] {
+    let shades = this.shadeCache.get(color);
+    if (!shades) {
+      if (this.shadeCache.size >= MAX_SHADE_CACHE) this.shadeCache.clear();
+      shades = buildShades(parseColor(ctx, color) ?? BLACK);
+      this.shadeCache.set(color, shades);
+    }
+    return shades;
   }
 
   /**

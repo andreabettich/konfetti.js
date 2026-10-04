@@ -1,6 +1,6 @@
 # @konfetti-js/core
 
-A lightweight, zero-dependency confetti animation library for the web. About 4 kB gzipped, TypeScript-first, and safe to import during server rendering.
+A lightweight, zero-dependency confetti animation library for the web. Pieces behave like paper: they tumble in 3D, catch the light and float down. About 5 kB gzipped, TypeScript-first, and safe to import during server rendering.
 
 **[Live demo and docs](https://andreabettich.github.io/konfetti.js/)**
 
