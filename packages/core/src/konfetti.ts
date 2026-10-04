@@ -180,7 +180,8 @@ export class Konfetti {
     const dt = clamp((time - this.lastTime) / FRAME_MS, 0, MAX_STEP);
     this.lastTime = time;
 
-    const hasParticles = updateParticles(this.pool, dt);
+    const { width, height } = this.renderer.getDimensions();
+    const hasParticles = updateParticles(this.pool, dt, width, height);
     this.renderer.render(this.pool);
 
     if (hasParticles) {

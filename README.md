@@ -10,8 +10,9 @@ A lightweight, performant confetti animation library for the web. Zero dependenc
 
 ## Features
 
-- Zero dependencies, about 4 kB gzipped
+- Zero dependencies, about 5 kB gzipped
 - TypeScript support with full type definitions, for ESM and CommonJS
+- Paper-like pieces that tumble in 3D, catch the light and sway as they float down
 - Time-based animation that looks the same at 60 Hz and 120 Hz, sharp on high-density screens
 - Accessibility support (respects `prefers-reduced-motion`)
 - Safe to import and call during server rendering
@@ -206,10 +207,10 @@ Fires one burst on a full-screen canvas that is created on first use. The canvas
 | `angle` | number | 90 | Launch angle in degrees (90 = up) |
 | `spread` | number | 45 | Spread angle in degrees |
 | `startVelocity` | number | 45 | Initial velocity |
-| `decay` | number | 0.9 | Share of speed kept per frame (0-1) |
+| `decay` | number | 0.9 | Air resistance: share of speed kept per frame (0-1) |
 | `gravity` | number | 1 | Gravity strength |
-| `drift` | number | 0 | Horizontal drift |
-| `ticks` | number | 200 | Particle lifetime in frames at 60 fps |
+| `drift` | number | 0 | Wind in px per frame (negative blows left) |
+| `ticks` | number | 600 | Longest lifetime in frames at 60 fps; pieces usually leave the screen first |
 | `origin` | {x, y} | {0.5, 0.5} | Spawn point (0-1 of the viewport); a missing axis keeps the preset's value |
 | `colors` | string[] | festive | Any CSS colors |
 | `shapes` | string[] | ['circle', 'square'] | Particle shapes |
@@ -265,6 +266,7 @@ For full control there is also the `Konfetti` class, with `fire`, `preset`, `con
 
 ## Behavior
 
+- Pieces behave like paper: they tumble in 3D, are lit from the upper left, slow down quickly after the burst and then sway down slowly. They disappear once they fall out of view.
 - Animation is time-based: speed and lifetime match on 60 Hz and 120 Hz displays.
 - The canvas renders at the screen's pixel density.
 - Animation pauses while the tab is hidden, and bursts fired while hidden are skipped.
@@ -273,8 +275,8 @@ For full control there is also the `Konfetti` class, with `fire`, `preset`, `con
 ## Performance
 
 - **Typed-array storage**: all particle data lives in one `Float32Array`, so bursts don't allocate objects
-- **Color batching**: particles are drawn grouped by color to minimize state changes
-- **Direct transforms**: each particle is drawn with a single `setTransform`, without `save`/`restore`
+- **Cached shades**: each color's light and dark tones are computed once, not per frame
+- **Direct transforms**: each piece's 3D orientation is drawn with a single `setTransform`, without `save`/`restore`
 - **Visibility API**: no frames are scheduled while the tab is hidden
 
 ## Browser Support

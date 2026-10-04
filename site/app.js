@@ -22,7 +22,7 @@ const DEFAULTS = {
   decay: 0.9,
   gravity: 1,
   drift: 0,
-  ticks: 200,
+  ticks: 600,
   scalar: 1,
   originX: 0.5,
   originY: 0.5,

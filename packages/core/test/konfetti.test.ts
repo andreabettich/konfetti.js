@@ -275,7 +275,8 @@ describe('timing and rendering', () => {
   it('keeps the color list small while a stream with random colors runs', async () => {
     const { Konfetti } = await loadCore();
     const k = new Konfetti();
-    const color = (i: number) => `#${i.toString(16).padStart(6, '0')}`;
+    // Names the canvas can't parse are drawn unshaded, so each stays recognizable
+    const color = (i: number) => `color-${i}`;
 
     // One short-lived piece per frame in a new color: the screen is never empty
     for (let i = 0; i < 600; i++) {

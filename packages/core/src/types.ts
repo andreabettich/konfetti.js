@@ -23,13 +23,16 @@ export interface KonfettiOptions {
   spread?: number;
   /** Initial velocity in pixels per frame at 60 fps (default: 45) */
   startVelocity?: number;
-  /** Velocity kept per frame at 60 fps, 0-1, lower = faster slowdown (default: 0.9) */
+  /** Air resistance: share of speed kept per frame at 60 fps, 0-1, lower = slows faster (default: 0.9) */
   decay?: number;
   /** Gravity strength (default: 1) */
   gravity?: number;
-  /** Horizontal drift (default: 0) */
+  /** Sideways wind in pixels per frame, negative blows left (default: 0) */
   drift?: number;
-  /** Particle lifetime in frames at 60 fps (default: 200) */
+  /**
+   * Longest a piece may live, in frames at 60 fps (default: 600). Pieces are
+   * removed as soon as they leave the screen, which usually comes first.
+   */
   ticks?: number;
   /**
    * Spawn origin point, 0-1 relative (default: { x: 0.5, y: 0.5 }). An axis you
@@ -96,7 +99,11 @@ export enum ParticleIndex {
   Drift = 13,
   Gravity = 14,
   Decay = 15,
-  SIZE = 16, // Total floats per particle
+  Wobble = 16, // Rotation around the piece's own vertical axis
+  WobbleSpeed = 17,
+  AirPhase = 18, // Phase of the gentle side-to-side air movement
+  AirPhaseSpeed = 19,
+  SIZE = 20, // Total floats per particle
 }
 
 /**

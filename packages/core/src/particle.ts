@@ -8,6 +8,11 @@ export const MAX_PARTICLES = 10_000;
 /** Above this many colors, unused ones are dropped from the palette */
 const MAX_PALETTE = 256;
 
+/** -1 or 1 at random */
+function randomSign(): number {
+  return Math.random() < 0.5 ? -1 : 1;
+}
+
 /**
  * Particle pool using Float32Array for performance
  * Each particle uses ParticleIndex.SIZE floats
@@ -71,13 +76,14 @@ export class ParticlePool {
       data[idx + ParticleIndex.VelocityX] = Math.cos(particleAngle) * velocity;
       data[idx + ParticleIndex.VelocityY] = -Math.sin(particleAngle) * velocity;
 
-      // Rotation
-      data[idx + ParticleIndex.Rotation] = randomRange(0, Math.PI * 2);
-      data[idx + ParticleIndex.RotationSpeed] = randomRange(-0.1, 0.1);
-
-      // Tilt (for wobble effect)
+      // Tumble around all three axes: a fast flip (tilt), a slower wobble and a
+      // gentle spin in the screen plane
       data[idx + ParticleIndex.Tilt] = randomRange(0, Math.PI * 2);
-      data[idx + ParticleIndex.TiltSpeed] = randomRange(0.05, 0.15);
+      data[idx + ParticleIndex.TiltSpeed] = randomRange(0.08, 0.22) * randomSign();
+      data[idx + ParticleIndex.Wobble] = randomRange(0, Math.PI * 2);
+      data[idx + ParticleIndex.WobbleSpeed] = randomRange(0.02, 0.07) * randomSign();
+      data[idx + ParticleIndex.Rotation] = randomRange(0, Math.PI * 2);
+      data[idx + ParticleIndex.RotationSpeed] = randomRange(-0.04, 0.04);
 
       data[idx + ParticleIndex.Color] = this.colorId(randomItem(options.colors));
       data[idx + ParticleIndex.Shape] = shapeToIndex(randomItem(options.shapes));
@@ -89,10 +95,13 @@ export class ParticlePool {
       data[idx + ParticleIndex.Life] = options.ticks;
       data[idx + ParticleIndex.MaxLife] = options.ticks;
 
-      // Physics are stored per particle so each burst keeps its own settings
+      // Physics are stored per particle so each burst keeps its own settings.
+      // Drift is the wind around this piece, a little different for each one.
       data[idx + ParticleIndex.Drift] = options.drift + randomRange(-0.5, 0.5);
       data[idx + ParticleIndex.Gravity] = options.gravity;
       data[idx + ParticleIndex.Decay] = options.decay;
+      data[idx + ParticleIndex.AirPhase] = randomRange(0, Math.PI * 2);
+      data[idx + ParticleIndex.AirPhaseSpeed] = randomRange(0.02, 0.05);
     }
 
     this.activeCount += count;
