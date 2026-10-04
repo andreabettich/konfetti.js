@@ -1,17 +1,12 @@
 import { shapeToIndex } from './shapes';
 import { ParticleIndex, type ResolvedOptions } from './types';
-import { degToRad, randomItem, randomRange } from './utils';
+import { degToRad, randomItem, randomRange, randomSign } from './utils';
 
 /** Hard upper limit, so a runaway loop of fire() calls cannot eat memory */
 export const MAX_PARTICLES = 10_000;
 
 /** Above this many colors, unused ones are dropped from the palette */
 const MAX_PALETTE = 256;
-
-/** -1 or 1 at random */
-function randomSign(): number {
-  return Math.random() < 0.5 ? -1 : 1;
-}
 
 /**
  * Particle pool using Float32Array for performance

@@ -7,6 +7,20 @@ import { ParticleIndex } from './types';
  */
 export type Orientation = Float64Array;
 
+/** Light from the upper left, slightly in front (unit vector) */
+const LIGHT_X = -0.3;
+const LIGHT_Y = -0.6;
+const LIGHT_Z = 0.742;
+
+/**
+ * How much the side of the piece facing the viewer faces the light, 0-1.
+ * Paper is lit on both sides, so the normal is flipped toward the viewer first.
+ */
+export function lightness(m: Orientation): number {
+  const facing = m[8] < 0 ? -1 : 1;
+  return Math.max(0, facing * (m[6] * LIGHT_X + m[7] * LIGHT_Y + m[8] * LIGHT_Z));
+}
+
 export function createOrientation(): Orientation {
   return new Float64Array(9);
 }

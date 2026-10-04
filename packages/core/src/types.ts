@@ -103,7 +103,14 @@ export enum ParticleIndex {
   WobbleSpeed = 17,
   AirPhase = 18, // Phase of the gentle side-to-side air movement
   AirPhaseSpeed = 19,
-  SIZE = 20, // Total floats per particle
+  // Written by physics each frame for the renderer: the piece's local x and y
+  // axes projected onto the screen, and how much its visible side faces the light
+  AxisXX = 20,
+  AxisXY = 21,
+  AxisYX = 22,
+  AxisYY = 23,
+  Light = 24, // 0-1
+  SIZE = 25, // Total floats per particle
 }
 
 /**

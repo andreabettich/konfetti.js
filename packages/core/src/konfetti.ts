@@ -23,6 +23,8 @@ export class Konfetti {
   private paused = false;
   private destroyed = false;
   private readonly resizeWithWindow: boolean = false;
+  /** Follows a custom canvas whose size changes through layout, not just window resizes */
+  private resizeObserver: ResizeObserver | null = null;
   private readonly timeouts = new Set<ReturnType<typeof setTimeout>>();
   private readonly intervals = new Set<ReturnType<typeof setInterval>>();
 
@@ -34,7 +36,13 @@ export class Konfetti {
 
     this.renderer = new Renderer(canvas);
     this.resizeWithWindow = createOptions.resize !== false;
-    if (this.resizeWithWindow) window.addEventListener('resize', this.handleResize);
+    if (this.resizeWithWindow) {
+      window.addEventListener('resize', this.handleResize);
+      if (canvas && typeof ResizeObserver !== 'undefined') {
+        this.resizeObserver = new ResizeObserver(this.handleResize);
+        this.resizeObserver.observe(canvas);
+      }
+    }
     document.addEventListener('visibilitychange', this.handleVisibilityChange);
   }
 
@@ -133,6 +141,8 @@ export class Konfetti {
     this.destroyed = true;
 
     if (this.resizeWithWindow) window.removeEventListener('resize', this.handleResize);
+    this.resizeObserver?.disconnect();
+    this.resizeObserver = null;
     document.removeEventListener('visibilitychange', this.handleVisibilityChange);
     this.renderer?.destroy();
   }

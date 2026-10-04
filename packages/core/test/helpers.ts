@@ -10,13 +10,55 @@ export interface Draw {
 
 type Matrix = [number, number, number, number, number, number];
 
+const NAMED_COLORS: Record<string, string> = {
+  black: '#000000',
+  white: '#ffffff',
+  red: '#ff0000',
+  gold: '#ffd700',
+};
+
+/**
+ * Normalize a color the way a canvas does: hex and names become '#rrggbb',
+ * rgb()/rgba() with alpha become 'rgba(r, g, b, a)'. Returns null for values a
+ * real canvas would ignore.
+ */
+function normalizeColor(value: string): string | null {
+  const color = value.trim().toLowerCase();
+  if (NAMED_COLORS[color]) return NAMED_COLORS[color];
+  if (color === 'transparent') return 'rgba(0, 0, 0, 0)';
+  const short = /^#([0-9a-f])([0-9a-f])([0-9a-f])$/.exec(color);
+  if (short) return `#${short[1]}${short[1]}${short[2]}${short[2]}${short[3]}${short[3]}`;
+  if (/^#[0-9a-f]{6}$/.test(color)) return color;
+  const rgb = /^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)$/.exec(color);
+  if (rgb) {
+    const [r, g, b] = [rgb[1], rgb[2], rgb[3]].map(Number);
+    const alpha = rgb[4] === undefined ? 1 : Number(rgb[4]);
+    if (alpha === 1) return `#${[r, g, b].map((c) => c.toString(16).padStart(2, '0')).join('')}`;
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+  return null;
+}
+
 /**
  * A 2D context that tracks the current transform, so tests can see where each
  * particle was drawn regardless of how the renderer builds its transforms.
  */
 export class FakeContext {
-  fillStyle = '#000000';
+  private currentFill = '#000000';
   globalAlpha = 1;
+  /** fillStyle assignments, to check that drawing is batched */
+  fillStyleChanges = 0;
+
+  get fillStyle(): string {
+    return this.currentFill;
+  }
+
+  /** Like a canvas: invalid colors are ignored, valid ones are normalized */
+  set fillStyle(value: string) {
+    this.fillStyleChanges++;
+    const normalized = normalizeColor(String(value));
+    if (normalized) this.currentFill = normalized;
+  }
   /** Draws since the last clearRect (one animation frame) */
   draws: Draw[] = [];
   clears = 0;

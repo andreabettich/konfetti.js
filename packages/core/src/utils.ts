@@ -117,6 +117,13 @@ export function randomRange(min: number, max: number): number {
 }
 
 /**
+ * -1 or 1 at random
+ */
+export function randomSign(): number {
+  return Math.random() < 0.5 ? -1 : 1;
+}
+
+/**
  * Get random item from array
  */
 export function randomItem<T>(arr: readonly T[]): T {

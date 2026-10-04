@@ -1,4 +1,4 @@
-import { createOrientation, orient } from './orientation';
+import { createOrientation, lightness, orient } from './orientation';
 import type { ParticlePool } from './particle';
 import { ParticleIndex } from './types';
 
@@ -58,9 +58,17 @@ function updateParticle(
 ): void {
   let vx = data[idx + ParticleIndex.VelocityX];
   let vy = data[idx + ParticleIndex.VelocityY];
-  orient(data, idx, orientation);
-  const nx = orientation[6];
-  const ny = orientation[7];
+
+  // Orientation is computed once per frame: physics uses the normal, and the
+  // renderer reads the projected axes and light stored here
+  const m = orient(data, idx, orientation);
+  const nx = m[6];
+  const ny = m[7];
+  data[idx + ParticleIndex.AxisXX] = m[0];
+  data[idx + ParticleIndex.AxisXY] = m[1];
+  data[idx + ParticleIndex.AxisYX] = m[3];
+  data[idx + ParticleIndex.AxisYY] = m[4];
+  data[idx + ParticleIndex.Light] = lightness(m);
 
   vy += data[idx + ParticleIndex.Gravity] * PAPER_GRAVITY * dt;
 
@@ -68,8 +76,9 @@ function updateParticle(
     // Falling flat (normal pointing up or down) catches the most air
     const drag = FALL_DRAG * (0.35 + 0.65 * Math.abs(ny));
     vy = Math.max(0, vy - drag * vy * Math.min(vy, FLUTTER_SPEED) * dt);
-    // A tilted piece glides toward its lower edge; the direction flips as it tumbles
-    vx += GLIDE * vy * 2 * nx * ny * dt;
+    // Air pushes along the normal, so a tilted piece glides toward its lower
+    // edge; the direction flips as it tumbles
+    vx -= GLIDE * vy * 2 * nx * ny * dt;
   }
 
   // The air itself moves: steady wind (drift) plus a slow sway. Decay pulls the
@@ -93,14 +102,19 @@ function updateParticle(
   data[idx + ParticleIndex.AirPhase] = phase + data[idx + ParticleIndex.AirPhaseSpeed] * dt;
   data[idx + ParticleIndex.Life] -= dt;
 
-  // Gone once it has fallen out of view (pieces may start above or beside it)
-  const x = data[idx + ParticleIndex.X];
-  const y = data[idx + ParticleIndex.Y];
-  if (
-    y > height + OFFSCREEN_MARGIN ||
-    x < -OFFSCREEN_MARGIN * 2 ||
-    x > width + OFFSCREEN_MARGIN * 2
-  ) {
-    data[idx + ParticleIndex.Life] = 0;
+  // Gone once it is out of view and moving away. Pieces may start beyond an edge
+  // (snow begins above the screen) and are kept until they head out. Without a
+  // canvas size yet (a hidden custom canvas), nothing is removed.
+  if (width > 0 && height > 0) {
+    const x = data[idx + ParticleIndex.X];
+    const y = data[idx + ParticleIndex.Y];
+    const fellOut = y > height + OFFSCREEN_MARGIN && vy >= 0;
+    const leftOut = x < -OFFSCREEN_MARGIN * 2 && vx <= 0;
+    const rightOut = x > width + OFFSCREEN_MARGIN * 2 && vx >= 0;
+    // Without gravity pulling down, a piece above the screen never comes back
+    const floatedOut = y < -OFFSCREEN_MARGIN && vy <= 0 && data[idx + ParticleIndex.Gravity] <= 0;
+    if (fellOut || leftOut || rightOut || floatedOut) {
+      data[idx + ParticleIndex.Life] = 0;
+    }
   }
 }

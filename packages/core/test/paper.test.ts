@@ -83,18 +83,146 @@ describe('paper look', () => {
     }
 
     expect(shades.size).toBeGreaterThan(4);
-    for (const shade of shades) expect(shade).toMatch(/^rgb\(\d+, \d+, \d+\)$/);
+    // The canvas reads opaque colors back as #rrggbb
+    for (const shade of shades) expect(shade).toMatch(/^#[0-9a-f]{6}$/);
     k.destroy();
   });
 
-  it('still draws colors it cannot parse, unshaded', async () => {
+  it('draws colors it cannot parse as shaded black, like an unset canvas fill', async () => {
     const { Konfetti } = await loadCore();
     const k = new Konfetti();
 
-    k.fire({ particleCount: 3, colors: ['not-a-color'] });
+    k.fire({ particleCount: 6, colors: ['not-a-color'] });
     env.clock.step();
 
-    expect(env.ctx.draws.map((d) => d.fillStyle)).toEqual(Array(3).fill('not-a-color'));
+    expect(env.ctx.draws).toHaveLength(6);
+    // Black, or dark gray where the light catches it
+    expect(env.ctx.draws.every((d) => /^#([0-3][0-9a-f])\1\1$/.test(d.fillStyle))).toBe(true);
     k.destroy();
+  });
+
+  it('keeps the transparency of rgba colors', async () => {
+    const { Konfetti } = await loadCore();
+    const k = new Konfetti();
+
+    k.fire({ particleCount: 6, colors: ['rgba(255, 0, 0, 0.5)'] });
+    env.clock.step();
+
+    // Shades of red (lit ones lighten toward white), all still half transparent
+    for (const d of env.ctx.draws) expect(d.fillStyle).toMatch(/^rgba\(\d+, (\d+), \1, 0\.5\)$/);
+    k.destroy();
+  });
+
+  it('batches drawing by color and shade instead of switching fill per piece', async () => {
+    const { Konfetti } = await loadCore();
+    const k = new Konfetti();
+
+    k.fire({ particleCount: 300, colors: ['#ff48b0', '#0078bf'] });
+    env.clock.step();
+    const before = env.ctx.fillStyleChanges;
+    env.clock.step();
+
+    // At most one change per color and shade step, far fewer than 300 pieces
+    expect(env.ctx.fillStyleChanges - before).toBeLessThanOrEqual(2 * 16);
+    k.destroy();
+  });
+
+  it('keeps pieces launched from just below the screen', async () => {
+    const { Konfetti } = await loadCore();
+    const k = new Konfetti();
+
+    // Below the bottom edge, shooting up
+    k.fire({ particleCount: 10, angle: 90, spread: 0, origin: { x: 0.5, y: 1.3 } });
+    for (let i = 0; i < 20; i++) env.clock.step();
+
+    expect(env.ctx.draws.length).toBeGreaterThan(0);
+    expect(Math.min(...env.ctx.draws.map((d) => d.y))).toBeLessThan(600);
+    k.destroy();
+  });
+
+  it('removes pieces that float off the top and will not come back', async () => {
+    const { Konfetti } = await loadCore();
+    const k = new Konfetti();
+
+    k.fire({ particleCount: 5, gravity: 0, angle: 90, spread: 0, origin: { x: 0.5, y: 0.1 } });
+    const frames = env.clock.runToEnd();
+
+    expect(frames).toBeLessThan(300);
+    k.destroy();
+  });
+
+  it('keeps pieces while a custom canvas has no size yet', async () => {
+    const { create } = await loadCore();
+    const canvas = document.createElement('canvas');
+    canvas.getBoundingClientRect = () => ({ width: 0, height: 0, top: 0, left: 0 }) as DOMRect;
+    document.body.appendChild(canvas);
+    const burst = create(canvas);
+
+    burst({ particleCount: 3, ticks: 120, startVelocity: 0 });
+    const frames = env.clock.runToEnd();
+
+    expect(frames).toBeGreaterThanOrEqual(119);
+    burst.destroy();
+  });
+});
+
+describe('custom canvas size', () => {
+  it('follows the canvas when its layout size changes', async () => {
+    let size = { width: 0, height: 0 };
+    const observers: Array<() => void> = [];
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        constructor(callback: () => void) {
+          observers.push(callback);
+        }
+        observe() {}
+        disconnect() {}
+      }
+    );
+    const { create } = await loadCore();
+    const canvas = document.createElement('canvas');
+    canvas.getBoundingClientRect = () => ({ ...size, top: 0, left: 0 }) as DOMRect;
+    document.body.appendChild(canvas);
+    const burst = create(canvas);
+
+    // The canvas gets its size later, through layout rather than a window resize
+    size = { width: 400, height: 300 };
+    for (const notify of observers) notify();
+
+    expect(canvas.width).toBe(400);
+    expect(canvas.height).toBe(300);
+    burst.destroy();
+  });
+});
+
+describe('falling-leaf glide', () => {
+  it('slides a tilted falling piece toward its lower edge', async () => {
+    vi.resetModules();
+    const { ParticlePool } = await import('../src/particle');
+    const { updateParticles } = await import('../src/physics');
+    const { ParticleIndex } = await import('../src/types');
+    const { resolveOptions } = await import('../src/utils');
+
+    const pool = new ParticlePool();
+    pool.spawn(resolveOptions({ particleCount: 1, startVelocity: 0, drift: 0 }), 800, 600);
+    const at = (field: number) => field;
+    const d = pool.data;
+    // Surface runs from upper left down to lower right: normal (1, -1)/√2, lower edge on the right
+    d[at(ParticleIndex.Tilt)] = Math.PI / 2;
+    d[at(ParticleIndex.Rotation)] = Math.PI / 4;
+    d[at(ParticleIndex.Wobble)] = 0;
+    d[at(ParticleIndex.TiltSpeed)] = 0;
+    d[at(ParticleIndex.WobbleSpeed)] = 0;
+    d[at(ParticleIndex.RotationSpeed)] = 0;
+    d[at(ParticleIndex.Drift)] = 0;
+    d[at(ParticleIndex.AirPhase)] = 0;
+    d[at(ParticleIndex.AirPhaseSpeed)] = 0;
+    d[at(ParticleIndex.VelocityX)] = 0;
+    d[at(ParticleIndex.VelocityY)] = 2;
+
+    updateParticles(pool, 1, 800, 600);
+
+    expect(d[ParticleIndex.VelocityX]).toBeGreaterThan(0);
   });
 });
