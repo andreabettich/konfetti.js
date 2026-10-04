@@ -1,6 +1,6 @@
 {
   "name": "@konfetti-js/vue",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Vue wrapper for konfetti.js",
   "type": "module",
   "main": "./dist/index.cjs",
