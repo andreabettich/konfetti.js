@@ -76,7 +76,7 @@ describe('<konfetti-trigger>', () => {
     expect(fireFromElement).toHaveBeenCalledWith(el, {
       preset: 'pride',
       colors: ['#f00', '#0f0'],
-      origin: { x: 0.2, y: 0.5 },
+      origin: { x: 0.2 },
     });
   });
 
@@ -101,6 +101,24 @@ describe('<konfetti-burst>', () => {
     el.fire({ drift: 2 });
 
     expect(firePreset).toHaveBeenCalledWith('snow', { particleCount: 12, drift: 2 });
+  });
+
+  it('keeps attribute values when an override is undefined', () => {
+    const el = render('<konfetti-burst colors="red,blue"></konfetti-burst>') as KonfettiElement;
+
+    el.fire({ colors: undefined, particleCount: 20 });
+
+    expect(fire).toHaveBeenCalledWith({ colors: ['red', 'blue'], particleCount: 20 });
+  });
+
+  it('sends only the origin axis that is set, so presets keep the other', () => {
+    const el = render(
+      '<konfetti-burst preset="cannon" origin-x="0.2"></konfetti-burst>'
+    ) as KonfettiElement;
+
+    el.fire();
+
+    expect(firePreset).toHaveBeenCalledWith('cannon', { origin: { x: 0.2 } });
   });
 
   it('fires a plain burst without a preset', () => {

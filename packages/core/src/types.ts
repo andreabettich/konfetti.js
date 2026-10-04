@@ -31,8 +31,11 @@ export interface KonfettiOptions {
   drift?: number;
   /** Particle lifetime in frames at 60 fps (default: 200) */
   ticks?: number;
-  /** Spawn origin point, 0-1 relative (default: { x: 0.5, y: 0.5 }) */
-  origin?: Origin;
+  /**
+   * Spawn origin point, 0-1 relative (default: { x: 0.5, y: 0.5 }). An axis you
+   * leave out keeps the preset's or default value.
+   */
+  origin?: Partial<Origin>;
   /** Array of CSS color strings (default: festive colors) */
   colors?: string[];
   /** Particle shapes to use (default: ['circle', 'square']) */

@@ -1,6 +1,6 @@
 import { ParticlePool } from './particle';
 import { updateParticles } from './physics';
-import { CONTINUOUS_DEFAULTS, PRESETS } from './presets';
+import { CONTINUOUS_DEFAULTS, isPresetName, PRESETS } from './presets';
 import { Renderer } from './renderer';
 import type { CreateOptions, KonfettiOptions, PresetName } from './types';
 import { clamp, isBrowser, mergeOptions, prefersReducedMotion, resolveOptions } from './utils';
@@ -58,10 +58,9 @@ export class Konfetti {
    * Fire a built-in preset; options override the preset's own values
    */
   preset(name: PresetName, options?: KonfettiOptions): void {
-    const preset = PRESETS[name];
-    if (!preset || this.destroyed) return;
+    if (!isPresetName(name) || this.destroyed) return;
 
-    for (const burst of preset.bursts) {
+    for (const burst of PRESETS[name].bursts) {
       const merged = mergeOptions(burst.options, options);
       if (burst.delay) {
         const id = setTimeout(() => {
@@ -110,9 +109,11 @@ export class Konfetti {
   }
 
   /**
-   * Clear all particles, cancel scheduled bursts and streams, and stop animating
+   * Clear all particles, cancel scheduled bursts and streams, stop animating and
+   * undo pause()
    */
   reset(): void {
+    this.paused = false;
     this.cancelFrame();
     for (const id of this.timeouts) clearTimeout(id);
     for (const id of this.intervals) clearInterval(id);

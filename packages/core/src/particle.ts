@@ -5,6 +5,9 @@ import { degToRad, randomItem, randomRange } from './utils';
 /** Hard upper limit, so a runaway loop of fire() calls cannot eat memory */
 export const MAX_PARTICLES = 10_000;
 
+/** Above this many colors, unused ones are dropped from the palette */
+const MAX_PALETTE = 256;
+
 /**
  * Particle pool using Float32Array for performance
  * Each particle uses ParticleIndex.SIZE floats
@@ -114,7 +117,33 @@ export class ParticlePool {
     }
 
     this.activeCount = writeIdx;
-    if (writeIdx === 0) this.clearPalette();
+    if (writeIdx === 0) {
+      this.clearPalette();
+    } else if (this.palette.length > MAX_PALETTE) {
+      this.prunePalette();
+    }
+  }
+
+  /**
+   * Keep only colors that live particles still use, renumbering them, so a long
+   * stream with random colors does not grow the palette forever
+   */
+  private prunePalette(): void {
+    const data = this.data;
+    const oldPalette = [...this.palette];
+    const remap = new Map<number, number>();
+    this.clearPalette();
+
+    for (let i = 0; i < this.activeCount; i++) {
+      const idx = i * ParticleIndex.SIZE + ParticleIndex.Color;
+      const oldId = data[idx];
+      let newId = remap.get(oldId);
+      if (newId === undefined) {
+        newId = this.colorId(oldPalette[oldId]);
+        remap.set(oldId, newId);
+      }
+      data[idx] = newId;
+    }
   }
 
   private colorId(color: string): number {

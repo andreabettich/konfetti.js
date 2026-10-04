@@ -43,7 +43,7 @@ pnpm add @konfetti-js/core
 
 ### Framework Wrappers
 
-Each wrapper installs `@konfetti-js/core` for you.
+Each wrapper installs `@konfetti-js/core` for you. If you also add core yourself (to import from it directly), keep it on the same version as the wrapper.
 
 ```bash
 pnpm add @konfetti-js/react
@@ -210,7 +210,7 @@ Fires one burst on a full-screen canvas that is created on first use. The canvas
 | `gravity` | number | 1 | Gravity strength |
 | `drift` | number | 0 | Horizontal drift |
 | `ticks` | number | 200 | Particle lifetime in frames at 60 fps |
-| `origin` | {x, y} | {0.5, 0.5} | Spawn point (0-1 of the viewport) |
+| `origin` | {x, y} | {0.5, 0.5} | Spawn point (0-1 of the viewport); a missing axis keeps the preset's value |
 | `colors` | string[] | festive | Any CSS colors |
 | `shapes` | string[] | ['circle', 'square'] | Particle shapes |
 | `scalar` | number | 1 | Size multiplier |

@@ -3,7 +3,7 @@
 // and a real require() / import() of the built files in Node.
 // Run after `pnpm build`.
 import { execFileSync } from 'node:child_process';
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -27,6 +27,17 @@ for (const dir of readdirSync(packagesDir)) {
   const pkg = JSON.parse(readFileSync(join(cwd, 'package.json'), 'utf8'));
   const esmOnly = !JSON.stringify(pkg.exports).includes('"require"');
   console.log(pkg.name);
+
+  const entryFiles = ['main', 'module', 'types', 'unpkg', 'jsdelivr']
+    .map((field) => pkg[field])
+    .filter(Boolean);
+  const missing = entryFiles.filter((file) => !existsSync(join(cwd, file)));
+  if (missing.length > 0) {
+    failed = true;
+    console.log(`  FAIL  entry files missing: ${missing.join(', ')}`);
+  } else {
+    console.log('  ok    entry files exist');
+  }
 
   run('publint', 'pnpm', ['exec', 'publint', '--strict'], cwd);
   run(

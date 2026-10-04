@@ -1,5 +1,5 @@
 import { isShape } from './shapes';
-import type { KonfettiOptions, ResolvedOptions, ShapeType } from './types';
+import type { KonfettiOptions, Origin, ResolvedOptions, ShapeType } from './types';
 
 /**
  * Default festive colors
@@ -82,8 +82,24 @@ export function mergeOptions(base: KonfettiOptions, override?: KonfettiOptions):
     for (const [key, value] of Object.entries(override)) {
       if (value !== undefined) merged[key] = value;
     }
+    // Origins merge per axis, so { x: 0.2 } keeps the base's y
+    if (override.origin) merged.origin = mergeOrigin(base.origin, override.origin);
   }
   return merged as KonfettiOptions;
+}
+
+/**
+ * Layer the defined axes of `override` on top of `base`
+ */
+export function mergeOrigin(
+  base: Partial<Origin> | undefined,
+  override: Partial<Origin> | undefined
+): Partial<Origin> {
+  return {
+    ...base,
+    ...(override?.x !== undefined && { x: override.x }),
+    ...(override?.y !== undefined && { y: override.y }),
+  };
 }
 
 /**

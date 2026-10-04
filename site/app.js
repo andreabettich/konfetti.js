@@ -3,6 +3,7 @@ import {
   continuous,
   explosion,
   fire,
+  fireFromElement,
   fireworks,
   pride,
   rain,
@@ -52,15 +53,10 @@ const hero = document.getElementById('hero');
 
 document.getElementById('hero-fire').addEventListener('click', (event) => {
   event.stopPropagation();
-  const rect = event.currentTarget.getBoundingClientRect();
-  fire({
+  fireFromElement(event.currentTarget, {
     particleCount: 120,
     spread: 80,
     startVelocity: 50,
-    origin: {
-      x: (rect.left + rect.width / 2) / window.innerWidth,
-      y: (rect.top + rect.height / 2) / window.innerHeight,
-    },
     colors: RISO,
     ...pageOptions(),
   });

@@ -48,18 +48,22 @@ export class Renderer {
   }
 
   /**
-   * Match the canvas to its display size at the screen's pixel density
+   * Match the canvas to its display size. The full-screen canvas also renders at
+   * the screen's pixel density; a canvas you pass in keeps one pixel per CSS
+   * pixel, because without a CSS size its display size follows its pixel size
+   * and would grow on every resize.
    */
   resize(): void {
     if (this.ownsCanvas) {
       this.width = window.innerWidth;
       this.height = window.innerHeight;
+      this.pixelRatio = window.devicePixelRatio || 1;
     } else {
       const rect = this.canvas.getBoundingClientRect();
       this.width = rect.width;
       this.height = rect.height;
+      this.pixelRatio = 1;
     }
-    this.pixelRatio = window.devicePixelRatio || 1;
     this.canvas.width = Math.round(this.width * this.pixelRatio);
     this.canvas.height = Math.round(this.height * this.pixelRatio);
   }

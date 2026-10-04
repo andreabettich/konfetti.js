@@ -1,5 +1,5 @@
 import { Konfetti } from './konfetti';
-import { PRESETS } from './presets';
+import { isPresetName, PRESETS } from './presets';
 import type {
   CreateOptions,
   FireFromElementOptions,
@@ -7,7 +7,7 @@ import type {
   Origin,
   PresetName,
 } from './types';
-import { isBrowser } from './utils';
+import { isBrowser, mergeOrigin } from './utils';
 
 /**
  * Fire function bound to a canvas, with preset, reset and destroy methods
@@ -62,17 +62,18 @@ export function originFromElement(element: Element): Origin {
  * Fire from the center of an element, for example the button that was clicked.
  * Single-burst presets (cannon, explosion, pride) start at the element too;
  * screen-wide presets (fireworks, rain, snow, sideCannons) keep their positions.
- * An origin you pass yourself always wins.
+ * An origin you pass yourself wins, axis by axis.
  */
 export function fireFromElement(element: Element, options: FireFromElementOptions = {}): void {
   if (!isBrowser()) return;
 
-  const { preset, ...rest } = options;
+  const { preset: name, ...rest } = options;
+  // An unknown name (for example a typo in plain JavaScript) fires a plain burst
+  const preset = isPresetName(name) ? name : undefined;
   const followsOrigin = preset ? PRESETS[preset].followsOrigin : true;
-  const merged =
-    followsOrigin && rest.origin === undefined
-      ? { ...rest, origin: originFromElement(element) }
-      : rest;
+  const merged = followsOrigin
+    ? { ...rest, origin: mergeOrigin(originFromElement(element), rest.origin) }
+    : rest;
 
   if (preset) {
     firePreset(preset, merged);

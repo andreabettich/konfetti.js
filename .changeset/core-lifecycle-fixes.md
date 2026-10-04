@@ -10,7 +10,7 @@ Fix the animation lifecycle and make bursts behave the same everywhere:
 - `zIndex` now applies to the canvas.
 - Each burst keeps its own gravity and decay; a later burst no longer changes earlier pieces.
 - Invalid option values (such as `NaN`) fall back to the defaults instead of clearing live particles, and `colors` accepts any CSS color.
-- Presets keep their own values when an option is passed as `undefined`.
+- Presets keep their own values when an option is passed as `undefined`, and `origin` merges per axis, so `{ x: 0.2 }` keeps the preset's `y`.
 - `reset()` also cancels pending `fireworks()` bursts and running `continuous()` streams.
 - `fire()` and the presets do nothing on the server instead of throwing, and bursts fired while the page is hidden are skipped.
 - Each instance owns its canvas; a destroyed instance ignores further calls. The full-screen canvas is marked `aria-hidden`.

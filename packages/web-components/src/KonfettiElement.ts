@@ -28,7 +28,11 @@ import { BaseElement, readOptions, readPreset } from './attributes';
 export class KonfettiElement extends BaseElement {
   /** Fire konfetti with the element's attributes, optionally overridden */
   fire(overrides?: KonfettiOptions): void {
-    const options = { ...readOptions(this), ...overrides };
+    const options: Record<string, unknown> = { ...readOptions(this) };
+    // Skip undefined overrides so they don't erase attribute values
+    for (const [key, value] of Object.entries(overrides ?? {})) {
+      if (value !== undefined) options[key] = value;
+    }
     const preset = readPreset(this);
 
     if (preset) {

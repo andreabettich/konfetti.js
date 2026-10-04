@@ -53,6 +53,16 @@ describe('presets', () => {
     expect(env.ctx.draws).toHaveLength(7);
   });
 
+  it('ignores names that are not presets', async () => {
+    const { firePreset } = await loadCore();
+
+    expect(() => {
+      firePreset('toString' as never);
+      firePreset('firework' as never);
+    }).not.toThrow();
+    expect(env.clock.pending).toBe(0);
+  });
+
   it('instances from create() can fire presets into their own canvas', async () => {
     const { create } = await loadCore();
     const burst = create(makeCanvas());
@@ -96,6 +106,33 @@ describe('fireFromElement()', () => {
     const xs = env.ctx.draws.map((d) => d.x);
     expect(Math.min(...xs)).toBeLessThan(100);
     expect(Math.max(...xs)).toBeGreaterThan(700);
+  });
+
+  it('fires a plain burst when the preset name is unknown', async () => {
+    const { fireFromElement } = await loadCore();
+
+    expect(() =>
+      fireFromElement(makeButton(), { preset: 'firework' as never, particleCount: 5 })
+    ).not.toThrow();
+    env.clock.step();
+
+    expect(env.ctx.draws).toHaveLength(5);
+  });
+
+  it('fills an origin axis you leave out from the element', async () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.5);
+    const { fireFromElement } = await loadCore();
+
+    fireFromElement(makeButton(), {
+      particleCount: 1,
+      startVelocity: 0,
+      gravity: 0,
+      origin: { y: 0.75 },
+    });
+    env.clock.step();
+
+    expect(env.ctx.draws[0].x).toBeCloseTo(200, 0);
+    expect(env.ctx.draws[0].y).toBeCloseTo(450, 0);
   });
 
   it('keeps an origin you pass yourself', async () => {

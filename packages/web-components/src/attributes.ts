@@ -50,11 +50,13 @@ export function readOptions(el: Element): KonfettiOptions {
     if (value !== undefined) options[option] = value;
   }
 
+  // Only the axes that are set, so a preset keeps its own value for the other
+  const origin: Record<string, number> = {};
   const originX = readNumber(el, 'origin-x');
   const originY = readNumber(el, 'origin-y');
-  if (originX !== undefined || originY !== undefined) {
-    options.origin = { x: originX ?? 0.5, y: originY ?? 0.5 };
-  }
+  if (originX !== undefined) origin.x = originX;
+  if (originY !== undefined) origin.y = originY;
+  if (Object.keys(origin).length > 0) options.origin = origin;
 
   const colors = readList(el, 'colors');
   if (colors) options.colors = colors;

@@ -92,6 +92,19 @@ describe('animation lifecycle', () => {
     k.destroy();
   });
 
+  it('animates again after pause() and reset()', async () => {
+    const { Konfetti } = await loadCore();
+    const k = new Konfetti();
+
+    k.pause();
+    k.reset();
+    k.fire({ particleCount: 4 });
+    env.clock.step();
+
+    expect(env.ctx.draws).toHaveLength(4);
+    k.destroy();
+  });
+
   it('ignores fire() after destroy()', async () => {
     const { create } = await loadCore();
     const burst = create(makeCanvas());
@@ -127,6 +140,18 @@ describe('options', () => {
     // cannon fires 100 pieces from the bottom edge (y = 600)
     expect(env.ctx.draws).toHaveLength(100);
     expect(Math.min(...env.ctx.draws.map((d) => d.y))).toBeGreaterThan(450);
+  });
+
+  it('keeps the preset value for an origin axis you leave out', async () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.5);
+    const { cannon } = await loadCore();
+
+    cannon({ particleCount: 1, startVelocity: 0, gravity: 0, origin: { x: 0.2 } });
+    env.clock.step();
+
+    // cannon starts at the bottom edge (y = 1)
+    expect(env.ctx.draws[0].x).toBeCloseTo(160, 0);
+    expect(env.ctx.draws[0].y).toBeCloseTo(600, 0);
   });
 
   it('applies zIndex to the full-screen canvas', async () => {
@@ -224,6 +249,46 @@ describe('timing and rendering', () => {
     expect(canvas.width).toBe(1600);
     expect(canvas.height).toBe(1200);
     expect(env.ctx.draws[0].x).toBeCloseTo(400, 0);
+    k.destroy();
+  });
+
+  it('keeps a custom canvas at its size on high-density screens', async () => {
+    env.setDevicePixelRatio(2);
+    const { create } = await loadCore();
+    // A canvas without CSS size is displayed at its own width and height
+    const canvas = document.createElement('canvas');
+    canvas.width = 400;
+    canvas.height = 300;
+    canvas.getBoundingClientRect = () =>
+      ({ width: canvas.width, height: canvas.height, top: 0, left: 0 }) as DOMRect;
+    document.body.appendChild(canvas);
+
+    const burst = create(canvas);
+    window.dispatchEvent(new Event('resize'));
+    window.dispatchEvent(new Event('resize'));
+
+    expect(canvas.width).toBe(400);
+    expect(canvas.height).toBe(300);
+    burst.destroy();
+  });
+
+  it('keeps the color list small while a stream with random colors runs', async () => {
+    const { Konfetti } = await loadCore();
+    const k = new Konfetti();
+    const color = (i: number) => `#${i.toString(16).padStart(6, '0')}`;
+
+    // One short-lived piece per frame in a new color: the screen is never empty
+    for (let i = 0; i < 600; i++) {
+      k.fire({ particleCount: 1, ticks: 5, colors: [color(i)] });
+      env.clock.step();
+    }
+
+    const pool = (k as unknown as { pool: { palette: string[] } }).pool;
+    expect(pool.palette.length).toBeLessThanOrEqual(257);
+    // The live pieces still draw in their own colors
+    const recent = new Set([595, 596, 597, 598, 599].map(color));
+    expect(env.ctx.draws.length).toBeGreaterThan(0);
+    expect(env.ctx.draws.every((d) => recent.has(d.fillStyle))).toBe(true);
     k.destroy();
   });
 
