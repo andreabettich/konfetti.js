@@ -1,38 +1,40 @@
-import { ref, onUnmounted } from 'vue';
 import {
-  fire as konfettiFire,
-  reset as konfettiReset,
-  cannon as konfettiCannon,
-  explosion as konfettiExplosion,
-  fireworks as konfettiFireworks,
-  rain as konfettiRain,
-  snow as konfettiSnow,
-  sideCannons as konfettiSideCannons,
-  pride as konfettiPride,
-  continuous as konfettiContinuous,
+  cannon,
+  continuous as coreContinuous,
+  reset as coreReset,
+  explosion,
+  fire,
+  fireworks,
   type KonfettiOptions,
+  pride,
+  rain,
+  sideCannons,
+  snow,
 } from '@konfetti-js/core';
+import { getCurrentScope, onScopeDispose } from 'vue';
+
+type FireFn = (options?: KonfettiOptions) => void;
 
 export interface UseKonfettiReturn {
   /** Fire konfetti with optional options */
-  fire: (options?: KonfettiOptions) => void;
+  fire: FireFn;
   /** Fire cannon preset */
-  cannon: (options?: Partial<KonfettiOptions>) => void;
+  cannon: FireFn;
   /** Fire explosion preset */
-  explosion: (options?: Partial<KonfettiOptions>) => void;
+  explosion: FireFn;
   /** Fire fireworks preset */
-  fireworks: (options?: Partial<KonfettiOptions>) => void;
+  fireworks: FireFn;
   /** Fire rain preset */
-  rain: (options?: Partial<KonfettiOptions>) => void;
+  rain: FireFn;
   /** Fire snow preset */
-  snow: (options?: Partial<KonfettiOptions>) => void;
+  snow: FireFn;
   /** Fire side cannons preset */
-  sideCannons: (options?: Partial<KonfettiOptions>) => void;
+  sideCannons: FireFn;
   /** Fire pride preset */
-  pride: (options?: Partial<KonfettiOptions>) => void;
-  /** Start continuous konfetti, returns stop function */
-  continuous: (options?: Partial<KonfettiOptions>, interval?: number) => () => void;
-  /** Reset/clear all konfetti */
+  pride: FireFn;
+  /** Start a stream (stopped automatically on unmount); returns a stop function */
+  continuous: (options?: KonfettiOptions, interval?: number) => () => void;
+  /** Clear all konfetti and stop streams */
   reset: () => void;
 }
 
@@ -53,64 +55,15 @@ export interface UseKonfettiReturn {
  * ```
  */
 export function useKonfetti(): UseKonfettiReturn {
-  const stopFn = ref<(() => void) | null>(null);
+  let stop: (() => void) | null = null;
 
-  // Cleanup on unmount
-  onUnmounted(() => {
-    if (stopFn.value) {
-      stopFn.value();
-      stopFn.value = null;
-    }
-  });
-
-  const fire = (options?: KonfettiOptions) => {
-    konfettiFire(options);
+  const stopStream = () => {
+    stop?.();
+    stop = null;
   };
 
-  const cannon = (options?: Partial<KonfettiOptions>) => {
-    konfettiCannon(options);
-  };
-
-  const explosion = (options?: Partial<KonfettiOptions>) => {
-    konfettiExplosion(options);
-  };
-
-  const fireworks = (options?: Partial<KonfettiOptions>) => {
-    konfettiFireworks(options);
-  };
-
-  const rain = (options?: Partial<KonfettiOptions>) => {
-    konfettiRain(options);
-  };
-
-  const snow = (options?: Partial<KonfettiOptions>) => {
-    konfettiSnow(options);
-  };
-
-  const sideCannons = (options?: Partial<KonfettiOptions>) => {
-    konfettiSideCannons(options);
-  };
-
-  const pride = (options?: Partial<KonfettiOptions>) => {
-    konfettiPride(options);
-  };
-
-  const continuous = (options?: Partial<KonfettiOptions>, interval?: number) => {
-    if (stopFn.value) {
-      stopFn.value();
-    }
-    const stop = konfettiContinuous(options, interval);
-    stopFn.value = stop;
-    return stop;
-  };
-
-  const reset = () => {
-    if (stopFn.value) {
-      stopFn.value();
-      stopFn.value = null;
-    }
-    konfettiReset();
-  };
+  // Stop this component's stream when its scope is disposed (on unmount)
+  if (getCurrentScope()) onScopeDispose(stopStream);
 
   return {
     fire,
@@ -121,7 +74,14 @@ export function useKonfetti(): UseKonfettiReturn {
     snow,
     sideCannons,
     pride,
-    continuous,
-    reset,
+    continuous: (options?: KonfettiOptions, interval?: number) => {
+      stopStream();
+      stop = coreContinuous(options, interval);
+      return stop;
+    },
+    reset: () => {
+      stopStream();
+      coreReset();
+    },
   };
 }

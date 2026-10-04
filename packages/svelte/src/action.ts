@@ -1,25 +1,13 @@
+import { type FireFromElementOptions, fireFromElement } from '@konfetti-js/core';
 import type { Action } from 'svelte/action';
-import {
-  fire,
-  cannon,
-  explosion,
-  fireworks,
-  rain,
-  snow,
-  sideCannons,
-  pride,
-  type KonfettiOptions,
-} from '@konfetti-js/core';
 
-export interface KonfettiActionOptions extends KonfettiOptions {
+export interface KonfettiActionOptions extends FireFromElementOptions {
   /** Event to trigger konfetti (default: 'click') */
   trigger?: string;
-  /** Preset to use */
-  preset?: 'cannon' | 'explosion' | 'fireworks' | 'rain' | 'snow' | 'sideCannons' | 'pride';
 }
 
 /**
- * Svelte action for konfetti.js
+ * Svelte action for konfetti.js. Fires from the element on click (or `trigger`).
  *
  * @example
  * ```svelte
@@ -43,65 +31,29 @@ export interface KonfettiActionOptions extends KonfettiOptions {
  */
 export const konfettiAction: Action<HTMLElement, KonfettiActionOptions | undefined> = (
   node,
-  options = {}
+  initialOptions = {}
 ) => {
-  let currentOptions = options;
+  let current = initialOptions;
+  let trigger = current.trigger ?? 'click';
 
   const handler = () => {
-    const rect = node.getBoundingClientRect();
-    const origin = {
-      x: (rect.left + rect.width / 2) / window.innerWidth,
-      y: (rect.top + rect.height / 2) / window.innerHeight,
-    };
-
-    const { preset, trigger: _, ...konfettiOptions } = currentOptions;
-
-    if (preset) {
-      switch (preset) {
-        case 'cannon':
-          cannon({ origin, ...konfettiOptions });
-          break;
-        case 'explosion':
-          explosion({ origin, ...konfettiOptions });
-          break;
-        case 'fireworks':
-          fireworks(konfettiOptions);
-          break;
-        case 'rain':
-          rain(konfettiOptions);
-          break;
-        case 'snow':
-          snow(konfettiOptions);
-          break;
-        case 'sideCannons':
-          sideCannons(konfettiOptions);
-          break;
-        case 'pride':
-          pride({ origin, ...konfettiOptions });
-          break;
-      }
-    } else {
-      fire({ origin, ...konfettiOptions });
-    }
+    const { trigger: _trigger, ...options } = current;
+    fireFromElement(node, options);
   };
 
-  const trigger = currentOptions.trigger ?? 'click';
   node.addEventListener(trigger, handler);
 
   return {
-    update(newOptions = {}) {
-      const oldTrigger = currentOptions.trigger ?? 'click';
-      const newTrigger = newOptions.trigger ?? 'click';
-
-      if (oldTrigger !== newTrigger) {
-        node.removeEventListener(oldTrigger, handler);
-        node.addEventListener(newTrigger, handler);
+    update(nextOptions = {}) {
+      current = nextOptions;
+      const nextTrigger = nextOptions.trigger ?? 'click';
+      if (nextTrigger !== trigger) {
+        node.removeEventListener(trigger, handler);
+        node.addEventListener(nextTrigger, handler);
+        trigger = nextTrigger;
       }
-
-      currentOptions = newOptions;
     },
     destroy() {
-      const trigger = currentOptions.trigger ?? 'click';
       node.removeEventListener(trigger, handler);
     },
   };

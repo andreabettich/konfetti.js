@@ -7,10 +7,13 @@
   "scripts": {
     "build": "pnpm -r run build",
     "dev": "pnpm -r run dev",
+    "test": "pnpm -r run test",
     "lint": "biome lint .",
     "format": "biome format --write .",
     "check": "biome check .",
     "typecheck": "pnpm -r run typecheck",
+    "check:packages": "node scripts/check-packages.mjs",
+    "site:build": "pnpm --filter @konfetti-js/core build && node scripts/build-site.mjs",
     "changeset": "changeset",
     "version": "changeset version",
     "release": "pnpm build && changeset publish"
@@ -27,13 +30,15 @@
     "type": "git",
     "url": "git+https://github.com/andreabettich/konfetti.js.git"
   },
-  "homepage": "https://github.com/andreabettich/konfetti.js#readme",
+  "homepage": "https://andreabettich.github.io/konfetti.js/",
   "bugs": {
     "url": "https://github.com/andreabettich/konfetti.js/issues"
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
     "@biomejs/biome": "^2.3.13",
-    "@changesets/cli": "^2.29.8"
+    "@changesets/cli": "^2.29.8",
+    "publint": "^0.3.25"
   },
   "packageManager": "pnpm@10.25.0",
   "engines": {

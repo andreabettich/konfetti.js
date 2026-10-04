@@ -24,44 +24,29 @@ function drawSquare(ctx: CanvasRenderingContext2D, size: number): void {
 }
 
 /**
- * Shape registry
+ * Supported shapes; a particle stores its shape as an index into this list
  */
-const shapes: Record<ShapeType, ShapeRenderer> = {
-  circle: drawCircle,
-  square: drawSquare,
-};
+const SHAPES: readonly ShapeType[] = ['circle', 'square'];
+
+const RENDERERS: readonly ShapeRenderer[] = [drawCircle, drawSquare];
 
 /**
- * Get renderer for a shape type
+ * Whether a value is a supported shape name
  */
-export function getShapeRenderer(shape: ShapeType): ShapeRenderer {
-  return shapes[shape] ?? shapes.circle;
+export function isShape(value: unknown): value is ShapeType {
+  return SHAPES.includes(value as ShapeType);
 }
 
 /**
  * Shape index for Float32Array storage
  */
 export function shapeToIndex(shape: ShapeType): number {
-  switch (shape) {
-    case 'circle':
-      return 0;
-    case 'square':
-      return 1;
-    default:
-      return 0;
-  }
+  return Math.max(0, SHAPES.indexOf(shape));
 }
 
 /**
- * Index to shape type
+ * Get the renderer for a stored shape index
  */
-export function indexToShape(index: number): ShapeType {
-  switch (index) {
-    case 0:
-      return 'circle';
-    case 1:
-      return 'square';
-    default:
-      return 'circle';
-  }
+export function getShapeRenderer(index: number): ShapeRenderer {
+  return RENDERERS[index] ?? drawCircle;
 }

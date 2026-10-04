@@ -21,38 +21,56 @@ export interface KonfettiOptions {
   angle?: number;
   /** Spread angle in degrees (default: 45) */
   spread?: number;
-  /** Initial velocity in pixels per frame (default: 45) */
+  /** Initial velocity in pixels per frame at 60 fps (default: 45) */
   startVelocity?: number;
-  /** Velocity decay rate 0-1, lower = faster decay (default: 0.9) */
+  /** Velocity kept per frame at 60 fps, 0-1, lower = faster slowdown (default: 0.9) */
   decay?: number;
   /** Gravity strength (default: 1) */
   gravity?: number;
   /** Horizontal drift (default: 0) */
   drift?: number;
-  /** Particle lifetime in frames (default: 200) */
+  /** Particle lifetime in frames at 60 fps (default: 200) */
   ticks?: number;
   /** Spawn origin point, 0-1 relative (default: { x: 0.5, y: 0.5 }) */
   origin?: Origin;
-  /** Array of hex color strings (default: festive colors) */
+  /** Array of CSS color strings (default: festive colors) */
   colors?: string[];
   /** Particle shapes to use (default: ['circle', 'square']) */
   shapes?: ShapeType[];
   /** Size multiplier (default: 1) */
   scalar?: number;
-  /** Canvas z-index (default: 100) */
+  /** z-index of the full-screen canvas (default: 100) */
   zIndex?: number;
   /** Disable animation for users who prefer reduced motion (default: true) */
   disableForReducedMotion?: boolean;
 }
 
 /**
+ * Names of the built-in preset effects
+ */
+export type PresetName =
+  | 'cannon'
+  | 'explosion'
+  | 'fireworks'
+  | 'rain'
+  | 'snow'
+  | 'sideCannons'
+  | 'pride';
+
+/**
+ * Options for firing from an element, optionally with a preset
+ */
+export interface FireFromElementOptions extends KonfettiOptions {
+  /** Preset to fire instead of a plain burst */
+  preset?: PresetName;
+}
+
+/**
  * Options for creating a custom konfetti instance
  */
 export interface CreateOptions {
-  /** Auto-resize canvas with window (default: true) */
+  /** Resize the canvas when the window resizes (default: true) */
   resize?: boolean;
-  /** Use global canvas instead of custom one (default: false) */
-  useWorker?: boolean;
 }
 
 /**
@@ -73,7 +91,9 @@ export enum ParticleIndex {
   Life = 11,
   MaxLife = 12,
   Drift = 13,
-  SIZE = 14, // Total floats per particle
+  Gravity = 14,
+  Decay = 15,
+  SIZE = 16, // Total floats per particle
 }
 
 /**

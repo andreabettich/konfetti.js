@@ -1,17 +1,8 @@
-import {
-  fire,
-  cannon,
-  explosion,
-  fireworks,
-  rain,
-  snow,
-  sideCannons,
-  pride,
-  type KonfettiOptions,
-} from '@konfetti-js/core';
+import { fireFromElement } from '@konfetti-js/core';
+import { BaseElement, readOptions, readPreset } from './attributes';
 
 /**
- * Custom element that fires konfetti on click
+ * Custom element that fires konfetti from itself on click (or the `trigger` event)
  *
  * @example
  * ```html
@@ -32,143 +23,49 @@ import {
  * </konfetti-trigger>
  * ```
  */
-export class KonfettiTriggerElement extends HTMLElement {
-  static observedAttributes = [
-    'particle-count',
-    'angle',
-    'spread',
-    'start-velocity',
-    'decay',
-    'gravity',
-    'drift',
-    'ticks',
-    'colors',
-    'shapes',
-    'scalar',
-    'preset',
-    'trigger',
-  ];
+export class KonfettiTriggerElement extends BaseElement {
+  static observedAttributes = ['trigger'];
 
-  private handler: ((e: Event) => void) | null = null;
+  /** The event the listener is currently attached to, if any */
+  private boundTrigger: string | null = null;
+
+  private readonly handleTrigger = (): void => {
+    const options = readOptions(this);
+    fireFromElement(this, { ...options, preset: readPreset(this) });
+    this.dispatchEvent(new CustomEvent('konfetti-fired', { detail: options }));
+  };
 
   connectedCallback(): void {
-    this.setupHandler();
+    this.bind();
   }
 
   disconnectedCallback(): void {
-    this.removeHandler();
+    this.unbind();
   }
 
-  attributeChangedCallback(name: string): void {
-    if (name === 'trigger') {
-      this.removeHandler();
-      this.setupHandler();
-    }
+  attributeChangedCallback(): void {
+    // Runs before connectedCallback for parsed attributes; binding waits until connected
+    if (this.isConnected) this.bind();
   }
 
-  private setupHandler(): void {
-    const trigger = this.getAttribute('trigger') ?? 'click';
-
-    this.handler = () => {
-      const rect = this.getBoundingClientRect();
-      const origin = {
-        x: (rect.left + rect.width / 2) / window.innerWidth,
-        y: (rect.top + rect.height / 2) / window.innerHeight,
-      };
-
-      const options = { ...this.getOptions(), origin };
-      const preset = this.getAttribute('preset');
-
-      if (preset) {
-        switch (preset) {
-          case 'cannon':
-            cannon(options);
-            break;
-          case 'explosion':
-            explosion(options);
-            break;
-          case 'fireworks':
-            fireworks(this.getOptions());
-            break;
-          case 'rain':
-            rain(this.getOptions());
-            break;
-          case 'snow':
-            snow(this.getOptions());
-            break;
-          case 'sideCannons':
-            sideCannons(this.getOptions());
-            break;
-          case 'pride':
-            pride(options);
-            break;
-          default:
-            fire(options);
-        }
-      } else {
-        fire(options);
-      }
-
-      this.dispatchEvent(new CustomEvent('konfetti-fired', { detail: options }));
-    };
-
-    this.addEventListener(trigger, this.handler);
+  private bind(): void {
+    const trigger = this.getAttribute('trigger') || 'click';
+    if (trigger === this.boundTrigger) return;
+    this.unbind();
+    this.addEventListener(trigger, this.handleTrigger);
+    this.boundTrigger = trigger;
   }
 
-  private removeHandler(): void {
-    if (this.handler) {
-      const trigger = this.getAttribute('trigger') ?? 'click';
-      this.removeEventListener(trigger, this.handler);
-      this.handler = null;
-    }
-  }
-
-  private getOptions(): KonfettiOptions {
-    const options: KonfettiOptions = {};
-
-    const particleCount = this.getAttribute('particle-count');
-    if (particleCount) options.particleCount = parseInt(particleCount, 10);
-
-    const angle = this.getAttribute('angle');
-    if (angle) options.angle = parseInt(angle, 10);
-
-    const spread = this.getAttribute('spread');
-    if (spread) options.spread = parseInt(spread, 10);
-
-    const startVelocity = this.getAttribute('start-velocity');
-    if (startVelocity) options.startVelocity = parseInt(startVelocity, 10);
-
-    const decay = this.getAttribute('decay');
-    if (decay) options.decay = parseFloat(decay);
-
-    const gravity = this.getAttribute('gravity');
-    if (gravity) options.gravity = parseFloat(gravity);
-
-    const drift = this.getAttribute('drift');
-    if (drift) options.drift = parseFloat(drift);
-
-    const ticks = this.getAttribute('ticks');
-    if (ticks) options.ticks = parseInt(ticks, 10);
-
-    const colors = this.getAttribute('colors');
-    if (colors) {
-      options.colors = colors.split(',').map((c) => c.trim());
-    }
-
-    const shapes = this.getAttribute('shapes');
-    if (shapes) {
-      options.shapes = shapes.split(',').map((s) => s.trim()) as KonfettiOptions['shapes'];
-    }
-
-    const scalar = this.getAttribute('scalar');
-    if (scalar) options.scalar = parseFloat(scalar);
-
-    return options;
+  private unbind(): void {
+    if (this.boundTrigger === null) return;
+    this.removeEventListener(this.boundTrigger, this.handleTrigger);
+    this.boundTrigger = null;
   }
 }
 
 /** Register the konfetti-trigger custom element */
 export function defineKonfettiTriggerElement(tagName = 'konfetti-trigger'): void {
+  if (typeof customElements === 'undefined') return;
   if (!customElements.get(tagName)) {
     customElements.define(tagName, KonfettiTriggerElement);
   }

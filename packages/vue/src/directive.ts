@@ -1,30 +1,30 @@
-import type { Directive, DirectiveBinding } from 'vue';
-import {
-  fire,
-  cannon,
-  explosion,
-  fireworks,
-  rain,
-  snow,
-  sideCannons,
-  pride,
-  type KonfettiOptions,
-} from '@konfetti-js/core';
+import { type FireFromElementOptions, fireFromElement } from '@konfetti-js/core';
+import type { Directive } from 'vue';
 
-export interface KonfettiDirectiveOptions extends KonfettiOptions {
+export interface KonfettiDirectiveOptions extends FireFromElementOptions {
   /** Event to trigger konfetti (default: 'click') */
   trigger?: string;
-  /** Preset to use */
-  preset?: 'cannon' | 'explosion' | 'fireworks' | 'rain' | 'snow' | 'sideCannons' | 'pride';
 }
 
-interface KonfettiHTMLElement extends HTMLElement {
-  _konfettiHandler?: EventListener;
-  _konfettiTrigger?: string;
+interface DirectiveState {
+  options: KonfettiDirectiveOptions;
+  trigger: string;
+  handler: () => void;
+}
+
+const states = new WeakMap<HTMLElement, DirectiveState>();
+
+function bindTrigger(el: HTMLElement, state: DirectiveState): void {
+  const trigger = state.options.trigger ?? 'click';
+  if (trigger === state.trigger) return;
+  el.removeEventListener(state.trigger, state.handler);
+  el.addEventListener(trigger, state.handler);
+  state.trigger = trigger;
 }
 
 /**
- * Vue directive for konfetti.js
+ * Vue directive for konfetti.js. Fires from the element on click (or `trigger`),
+ * and picks up changes to the bound options.
  *
  * @example
  * ```vue
@@ -44,62 +44,31 @@ interface KonfettiHTMLElement extends HTMLElement {
  * </template>
  * ```
  */
-export const vKonfetti: Directive<KonfettiHTMLElement, KonfettiDirectiveOptions | undefined> = {
-  mounted(
-    el: KonfettiHTMLElement,
-    binding: DirectiveBinding<KonfettiDirectiveOptions | undefined>
-  ) {
-    const options = binding.value ?? {};
-    const trigger = options.trigger ?? 'click';
-
-    const handler = () => {
-      const rect = el.getBoundingClientRect();
-      const origin = {
-        x: (rect.left + rect.width / 2) / window.innerWidth,
-        y: (rect.top + rect.height / 2) / window.innerHeight,
-      };
-
-      const { preset, trigger: _, ...konfettiOptions } = options;
-
-      if (preset) {
-        switch (preset) {
-          case 'cannon':
-            cannon({ origin, ...konfettiOptions });
-            break;
-          case 'explosion':
-            explosion({ origin, ...konfettiOptions });
-            break;
-          case 'fireworks':
-            fireworks(konfettiOptions);
-            break;
-          case 'rain':
-            rain(konfettiOptions);
-            break;
-          case 'snow':
-            snow(konfettiOptions);
-            break;
-          case 'sideCannons':
-            sideCannons(konfettiOptions);
-            break;
-          case 'pride':
-            pride({ origin, ...konfettiOptions });
-            break;
-        }
-      } else {
-        fire({ origin, ...konfettiOptions });
-      }
+export const vKonfetti: Directive<HTMLElement, KonfettiDirectiveOptions | undefined> = {
+  mounted(el, binding) {
+    const state: DirectiveState = {
+      options: binding.value ?? {},
+      trigger: binding.value?.trigger ?? 'click',
+      handler: () => {
+        const { trigger: _trigger, ...options } = state.options;
+        fireFromElement(el, options);
+      },
     };
-
-    el.addEventListener(trigger, handler);
-    el._konfettiHandler = handler;
-    el._konfettiTrigger = trigger;
+    el.addEventListener(state.trigger, state.handler);
+    states.set(el, state);
   },
 
-  unmounted(el: KonfettiHTMLElement) {
-    const handler = el._konfettiHandler;
-    const trigger = el._konfettiTrigger;
-    if (handler && trigger) {
-      el.removeEventListener(trigger, handler);
-    }
+  updated(el, binding) {
+    const state = states.get(el);
+    if (!state) return;
+    state.options = binding.value ?? {};
+    bindTrigger(el, state);
+  },
+
+  unmounted(el) {
+    const state = states.get(el);
+    if (!state) return;
+    el.removeEventListener(state.trigger, state.handler);
+    states.delete(el);
   },
 };

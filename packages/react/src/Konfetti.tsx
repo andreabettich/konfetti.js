@@ -1,25 +1,17 @@
-import { useEffect, useMemo, useRef } from 'react';
-import {
-  fire,
-  cannon,
-  explosion,
-  fireworks,
-  rain,
-  snow,
-  sideCannons,
-  pride,
-  type KonfettiOptions,
-} from '@konfetti-js/core';
+import { fire, firePreset, type KonfettiOptions, type PresetName } from '@konfetti-js/core';
+import { useEffect, useRef } from 'react';
 
 export interface KonfettiProps extends KonfettiOptions {
-  /** Trigger konfetti when this becomes true */
+  /** Fire when this turns true */
   fire?: boolean;
-  /** Preset to use (overrides other options) */
-  preset?: 'cannon' | 'explosion' | 'fireworks' | 'rain' | 'snow' | 'sideCannons' | 'pride';
+  /** Preset to fire; other props override the preset's values */
+  preset?: PresetName;
+  /** Called right after firing, for example to set your `fire` state back to false */
+  onFired?: () => void;
 }
 
 /**
- * Declarative Konfetti component
+ * Declarative Konfetti component. Fires once each time `fire` turns true.
  *
  * @example
  * ```tsx
@@ -28,105 +20,36 @@ export interface KonfettiProps extends KonfettiOptions {
  *
  *   return (
  *     <>
- *       <Konfetti fire={celebrate} particleCount={100} />
  *       <button onClick={() => setCelebrate(true)}>Celebrate!</button>
+ *       <Konfetti fire={celebrate} preset="fireworks" onFired={() => setCelebrate(false)} />
  *     </>
  *   );
  * }
  * ```
  */
-export function Konfetti({
-  fire: shouldFire,
-  preset,
-  particleCount,
-  angle,
-  spread,
-  startVelocity,
-  decay,
-  gravity,
-  drift,
-  ticks,
-  origin,
-  colors,
-  shapes,
-  scalar,
-  zIndex,
-  disableForReducedMotion,
-}: KonfettiProps) {
-  const hasFired = useRef(false);
-
-  const options = useMemo<KonfettiOptions>(
-    () => ({
-      particleCount,
-      angle,
-      spread,
-      startVelocity,
-      decay,
-      gravity,
-      drift,
-      ticks,
-      origin,
-      colors,
-      shapes,
-      scalar,
-      zIndex,
-      disableForReducedMotion,
-    }),
-    [
-      particleCount,
-      angle,
-      spread,
-      startVelocity,
-      decay,
-      gravity,
-      drift,
-      ticks,
-      origin,
-      colors,
-      shapes,
-      scalar,
-      zIndex,
-      disableForReducedMotion,
-    ]
-  );
+export function Konfetti({ fire: shouldFire = false, preset, onFired, ...options }: KonfettiProps) {
+  // Read the latest props when firing without re-firing every time they change
+  const latest = useRef({ preset, onFired, options });
+  latest.current = { preset, onFired, options };
+  // Guards against firing twice for one `true`, including StrictMode's double effects
+  const firedRef = useRef(false);
 
   useEffect(() => {
-    if (shouldFire && !hasFired.current) {
-      hasFired.current = true;
-
-      if (preset) {
-        switch (preset) {
-          case 'cannon':
-            cannon(options);
-            break;
-          case 'explosion':
-            explosion(options);
-            break;
-          case 'fireworks':
-            fireworks(options);
-            break;
-          case 'rain':
-            rain(options);
-            break;
-          case 'snow':
-            snow(options);
-            break;
-          case 'sideCannons':
-            sideCannons(options);
-            break;
-          case 'pride':
-            pride(options);
-            break;
-        }
-      } else {
-        fire(options);
-      }
-    }
-
     if (!shouldFire) {
-      hasFired.current = false;
+      firedRef.current = false;
+      return;
     }
-  }, [shouldFire, preset, options]);
+    if (firedRef.current) return;
+    firedRef.current = true;
+
+    const { preset, onFired, options } = latest.current;
+    if (preset) {
+      firePreset(preset, options);
+    } else {
+      fire(options);
+    }
+    onFired?.();
+  }, [shouldFire]);
 
   return null;
 }

@@ -1,43 +1,45 @@
-import { useCallback, useRef } from 'react';
 import {
-  fire as konfettiFire,
-  reset as konfettiReset,
-  cannon as konfettiCannon,
-  explosion as konfettiExplosion,
-  fireworks as konfettiFireworks,
-  rain as konfettiRain,
-  snow as konfettiSnow,
-  sideCannons as konfettiSideCannons,
-  pride as konfettiPride,
-  continuous as konfettiContinuous,
+  cannon,
+  continuous as coreContinuous,
+  reset as coreReset,
+  explosion,
+  fire,
+  fireworks,
   type KonfettiOptions,
+  pride,
+  rain,
+  sideCannons,
+  snow,
 } from '@konfetti-js/core';
+import { useEffect, useMemo, useRef } from 'react';
+
+type FireFn = (options?: KonfettiOptions) => void;
 
 export interface UseKonfettiReturn {
   /** Fire konfetti with optional options */
-  fire: (options?: KonfettiOptions) => void;
+  fire: FireFn;
   /** Fire cannon preset */
-  cannon: (options?: Partial<KonfettiOptions>) => void;
+  cannon: FireFn;
   /** Fire explosion preset */
-  explosion: (options?: Partial<KonfettiOptions>) => void;
+  explosion: FireFn;
   /** Fire fireworks preset */
-  fireworks: (options?: Partial<KonfettiOptions>) => void;
+  fireworks: FireFn;
   /** Fire rain preset */
-  rain: (options?: Partial<KonfettiOptions>) => void;
+  rain: FireFn;
   /** Fire snow preset */
-  snow: (options?: Partial<KonfettiOptions>) => void;
+  snow: FireFn;
   /** Fire side cannons preset */
-  sideCannons: (options?: Partial<KonfettiOptions>) => void;
+  sideCannons: FireFn;
   /** Fire pride preset */
-  pride: (options?: Partial<KonfettiOptions>) => void;
-  /** Start continuous konfetti, returns stop function */
-  continuous: (options?: Partial<KonfettiOptions>, interval?: number) => () => void;
-  /** Reset/clear all konfetti */
+  pride: FireFn;
+  /** Start a stream (stopped automatically on unmount); returns a stop function */
+  continuous: (options?: KonfettiOptions, interval?: number) => () => void;
+  /** Clear all konfetti and stop streams */
   reset: () => void;
 }
 
 /**
- * React hook for konfetti.js
+ * React hook for konfetti.js. The returned functions are stable across renders.
  *
  * @example
  * ```tsx
@@ -55,66 +57,37 @@ export interface UseKonfettiReturn {
 export function useKonfetti(): UseKonfettiReturn {
   const stopRef = useRef<(() => void) | null>(null);
 
-  const fire = useCallback((options?: KonfettiOptions) => {
-    konfettiFire(options);
-  }, []);
-
-  const cannon = useCallback((options?: Partial<KonfettiOptions>) => {
-    konfettiCannon(options);
-  }, []);
-
-  const explosion = useCallback((options?: Partial<KonfettiOptions>) => {
-    konfettiExplosion(options);
-  }, []);
-
-  const fireworks = useCallback((options?: Partial<KonfettiOptions>) => {
-    konfettiFireworks(options);
-  }, []);
-
-  const rain = useCallback((options?: Partial<KonfettiOptions>) => {
-    konfettiRain(options);
-  }, []);
-
-  const snow = useCallback((options?: Partial<KonfettiOptions>) => {
-    konfettiSnow(options);
-  }, []);
-
-  const sideCannons = useCallback((options?: Partial<KonfettiOptions>) => {
-    konfettiSideCannons(options);
-  }, []);
-
-  const pride = useCallback((options?: Partial<KonfettiOptions>) => {
-    konfettiPride(options);
-  }, []);
-
-  const continuous = useCallback((options?: Partial<KonfettiOptions>, interval?: number) => {
-    // Stop any existing continuous konfetti
-    if (stopRef.current) {
-      stopRef.current();
-    }
-    const stop = konfettiContinuous(options, interval);
-    stopRef.current = stop;
-    return stop;
-  }, []);
-
-  const reset = useCallback(() => {
-    if (stopRef.current) {
-      stopRef.current();
+  // Stop this component's stream when it unmounts
+  useEffect(
+    () => () => {
+      stopRef.current?.();
       stopRef.current = null;
-    }
-    konfettiReset();
-  }, []);
+    },
+    []
+  );
 
-  return {
-    fire,
-    cannon,
-    explosion,
-    fireworks,
-    rain,
-    snow,
-    sideCannons,
-    pride,
-    continuous,
-    reset,
-  };
+  return useMemo(
+    () => ({
+      fire,
+      cannon,
+      explosion,
+      fireworks,
+      rain,
+      snow,
+      sideCannons,
+      pride,
+      continuous: (options?: KonfettiOptions, interval?: number) => {
+        stopRef.current?.();
+        const stop = coreContinuous(options, interval);
+        stopRef.current = stop;
+        return stop;
+      },
+      reset: () => {
+        stopRef.current?.();
+        stopRef.current = null;
+        coreReset();
+      },
+    }),
+    []
+  );
 }

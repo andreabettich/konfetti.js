@@ -1,212 +1,189 @@
-import type { CreateOptions, KonfettiOptions } from './types';
-
-/**
- * Fire function with attached reset and destroy methods
- */
-export interface KonfettiInstance {
-  (options?: KonfettiOptions): void;
-  reset: () => void;
-  destroy: () => void;
-}
-
 import { ParticlePool } from './particle';
-import { PhysicsEngine } from './physics';
+import { updateParticles } from './physics';
+import { CONTINUOUS_DEFAULTS, PRESETS } from './presets';
 import { Renderer } from './renderer';
-import { prefersReducedMotion, resolveOptions } from './utils';
+import type { CreateOptions, KonfettiOptions, PresetName } from './types';
+import { clamp, isBrowser, mergeOptions, prefersReducedMotion, resolveOptions } from './utils';
+
+/** Length of one 60 fps frame; physics are tuned in these units */
+const FRAME_MS = 1000 / 60;
+/** Largest step per frame, so a long stall does not teleport particles */
+const MAX_STEP = 4;
 
 /**
- * Main Konfetti class
- * Manages the animation loop and coordinates particles, physics, and rendering
+ * Manages one canvas: the animation loop, particles, physics and rendering.
+ * Safe to construct on the server, where every method does nothing.
  */
 export class Konfetti {
-  private pool: ParticlePool;
-  private physics: PhysicsEngine;
-  private renderer: Renderer;
-  private animationId: number | null = null;
-  private isRunning: boolean = false;
-  private resizeHandler: (() => void) | null = null;
-  private visibilityHandler: (() => void) | null = null;
-  private isPaused: boolean = false;
+  private readonly pool = new ParticlePool();
+  private readonly renderer: Renderer | null = null;
+  private frameId: number | null = null;
+  /** Timestamp of the previous frame, or when the loop was scheduled */
+  private lastTime = 0;
+  private paused = false;
+  private destroyed = false;
+  private readonly resizeWithWindow: boolean = false;
+  private readonly timeouts = new Set<ReturnType<typeof setTimeout>>();
+  private readonly intervals = new Set<ReturnType<typeof setInterval>>();
 
-  constructor(canvas?: HTMLCanvasElement, createOptions?: CreateOptions) {
-    this.pool = new ParticlePool(1000);
-    this.physics = new PhysicsEngine();
-    this.renderer = new Renderer();
-
-    // Initialize renderer
-    this.renderer.init(canvas, 100);
-
-    // Set up resize handler if requested
-    if (createOptions?.resize !== false) {
-      this.resizeHandler = () => this.renderer.resize();
-      window.addEventListener('resize', this.resizeHandler);
+  constructor(canvas?: HTMLCanvasElement, createOptions: CreateOptions = {}) {
+    if (!isBrowser()) {
+      this.destroyed = true;
+      return;
     }
 
-    // Set up visibility handler for pause/resume
-    this.visibilityHandler = () => {
-      if (document.hidden) {
-        this.pause();
-      } else {
-        this.resume();
-      }
-    };
-    document.addEventListener('visibilitychange', this.visibilityHandler);
+    this.renderer = new Renderer(canvas);
+    this.resizeWithWindow = createOptions.resize !== false;
+    if (this.resizeWithWindow) window.addEventListener('resize', this.handleResize);
+    document.addEventListener('visibilitychange', this.handleVisibilityChange);
   }
 
   /**
-   * Fire confetti with the given options
+   * Fire one burst. Skipped while the page is hidden, after destroy(), and for
+   * visitors who prefer reduced motion (unless disableForReducedMotion is false).
    */
   fire(options?: KonfettiOptions): void {
+    if (this.destroyed || !this.renderer || document.hidden) return;
+
     const resolved = resolveOptions(options);
+    if (resolved.disableForReducedMotion && prefersReducedMotion()) return;
 
-    // Check for reduced motion preference
-    if (resolved.disableForReducedMotion && prefersReducedMotion()) {
-      return;
-    }
-
-    // Configure physics with these options
-    this.physics.configure(resolved);
-
-    // Get canvas dimensions
+    this.renderer.setZIndex(resolved.zIndex);
     const { width, height } = this.renderer.getDimensions();
-
-    // Spawn new particles
     this.pool.spawn(resolved, width, height);
+    this.scheduleFrame();
+  }
 
-    // Start animation if not running
-    if (!this.isRunning) {
-      this.start();
+  /**
+   * Fire a built-in preset; options override the preset's own values
+   */
+  preset(name: PresetName, options?: KonfettiOptions): void {
+    const preset = PRESETS[name];
+    if (!preset || this.destroyed) return;
+
+    for (const burst of preset.bursts) {
+      const merged = mergeOptions(burst.options, options);
+      if (burst.delay) {
+        const id = setTimeout(() => {
+          this.timeouts.delete(id);
+          this.fire(merged);
+        }, burst.delay);
+        this.timeouts.add(id);
+      } else {
+        this.fire(merged);
+      }
     }
   }
 
   /**
-   * Start the animation loop
+   * Fire a small burst every `interval` ms until the returned function is
+   * called, or until reset() or destroy()
    */
-  private start(): void {
-    if (this.isRunning) return;
-    this.isRunning = true;
-    this.loop();
+  continuous(options?: KonfettiOptions, interval = 250): () => void {
+    if (this.destroyed) return () => {};
+
+    const merged = mergeOptions(CONTINUOUS_DEFAULTS, options);
+    const delay = Number.isFinite(interval) && interval >= 16 ? interval : 250;
+    const id = setInterval(() => this.fire(merged), delay);
+    this.intervals.add(id);
+
+    return () => {
+      clearInterval(id);
+      this.intervals.delete(id);
+    };
   }
 
   /**
-   * Animation loop
+   * Pause the animation; particles stay where they are
    */
-  private loop = (): void => {
-    if (!this.isRunning || this.isPaused) {
-      this.animationId = null;
-      return;
-    }
+  pause(): void {
+    this.paused = true;
+    this.cancelFrame();
+  }
 
-    // Clear canvas
-    this.renderer.clear();
+  /**
+   * Resume after pause()
+   */
+  resume(): void {
+    this.paused = false;
+    this.scheduleFrame();
+  }
 
-    // Update physics
-    const hasActiveParticles = this.physics.update(this.pool);
+  /**
+   * Clear all particles, cancel scheduled bursts and streams, and stop animating
+   */
+  reset(): void {
+    this.cancelFrame();
+    for (const id of this.timeouts) clearTimeout(id);
+    for (const id of this.intervals) clearInterval(id);
+    this.timeouts.clear();
+    this.intervals.clear();
+    this.pool.reset();
+    this.renderer?.clear();
+  }
 
-    // Render particles
-    this.renderer.render(this.pool);
+  /**
+   * Reset, remove listeners and remove the canvas if this instance created it.
+   * The instance ignores every call afterwards.
+   */
+  destroy(): void {
+    if (this.destroyed) return;
+    this.reset();
+    this.destroyed = true;
 
-    // Continue loop if there are active particles
-    if (hasActiveParticles) {
-      this.animationId = requestAnimationFrame(this.loop);
+    if (this.resizeWithWindow) window.removeEventListener('resize', this.handleResize);
+    document.removeEventListener('visibilitychange', this.handleVisibilityChange);
+    this.renderer?.destroy();
+  }
+
+  private readonly handleResize = (): void => {
+    this.renderer?.resize();
+  };
+
+  private readonly handleVisibilityChange = (): void => {
+    if (document.hidden) {
+      this.cancelFrame();
     } else {
-      this.isRunning = false;
-      this.animationId = null;
+      this.scheduleFrame();
     }
   };
 
   /**
-   * Pause animation
+   * Start the loop if there is something to animate and nothing prevents it
    */
-  pause(): void {
-    this.isPaused = true;
+  private scheduleFrame(): void {
+    if (
+      this.frameId !== null ||
+      this.paused ||
+      this.destroyed ||
+      document.hidden ||
+      this.pool.activeCount === 0
+    ) {
+      return;
+    }
+    this.lastTime = performance.now();
+    this.frameId = requestAnimationFrame(this.tick);
   }
 
-  /**
-   * Resume animation
-   */
-  resume(): void {
-    if (this.isPaused && this.isRunning) {
-      this.isPaused = false;
-      this.loop();
+  private cancelFrame(): void {
+    if (this.frameId !== null) {
+      cancelAnimationFrame(this.frameId);
+      this.frameId = null;
     }
   }
 
-  /**
-   * Reset - clear all particles and stop animation
-   */
-  reset(): void {
-    if (this.animationId !== null) {
-      cancelAnimationFrame(this.animationId);
-      this.animationId = null;
+  private readonly tick = (time: number): void => {
+    this.frameId = null;
+    if (!this.renderer) return;
+
+    const dt = clamp((time - this.lastTime) / FRAME_MS, 0, MAX_STEP);
+    this.lastTime = time;
+
+    const hasParticles = updateParticles(this.pool, dt);
+    this.renderer.render(this.pool);
+
+    if (hasParticles) {
+      this.frameId = requestAnimationFrame(this.tick);
     }
-    this.isRunning = false;
-    this.isPaused = false;
-    this.pool.reset();
-    this.renderer.clear();
-  }
-
-  /**
-   * Destroy instance and clean up resources
-   */
-  destroy(): void {
-    this.reset();
-
-    if (this.resizeHandler) {
-      window.removeEventListener('resize', this.resizeHandler);
-      this.resizeHandler = null;
-    }
-
-    if (this.visibilityHandler) {
-      document.removeEventListener('visibilitychange', this.visibilityHandler);
-      this.visibilityHandler = null;
-    }
-
-    this.renderer.destroy();
-  }
-}
-
-// Global instance for simple API
-let globalInstance: Konfetti | null = null;
-
-/**
- * Get or create global instance
- */
-function getGlobalInstance(): Konfetti {
-  if (!globalInstance) {
-    globalInstance = new Konfetti();
-  }
-  return globalInstance;
-}
-
-/**
- * Fire konfetti with global instance
- */
-export function fire(options?: KonfettiOptions): void {
-  getGlobalInstance().fire(options);
-}
-
-/**
- * Reset global instance
- */
-export function reset(): void {
-  if (globalInstance) {
-    globalInstance.reset();
-  }
-}
-
-/**
- * Create a new Konfetti instance for a specific canvas
- */
-export function create(canvas: HTMLCanvasElement, createOptions?: CreateOptions): KonfettiInstance {
-  const instance = new Konfetti(canvas, createOptions);
-
-  // Return fire function bound to this instance
-  const fireFn = ((options?: KonfettiOptions) => instance.fire(options)) as KonfettiInstance;
-
-  // Attach reset and destroy methods
-  fireFn.reset = () => instance.reset();
-  fireFn.destroy = () => instance.destroy();
-
-  return fireFn;
+  };
 }

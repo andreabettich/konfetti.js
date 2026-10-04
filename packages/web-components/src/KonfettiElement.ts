@@ -1,18 +1,8 @@
-import {
-  fire,
-  reset,
-  cannon,
-  explosion,
-  fireworks,
-  rain,
-  snow,
-  sideCannons,
-  pride,
-  type KonfettiOptions,
-} from '@konfetti-js/core';
+import { fire, firePreset, type KonfettiOptions, reset } from '@konfetti-js/core';
+import { BaseElement, readOptions, readPreset } from './attributes';
 
 /**
- * Custom element for firing konfetti
+ * Custom element for firing konfetti from your own code
  *
  * @example
  * ```html
@@ -35,107 +25,14 @@ import {
  * </script>
  * ```
  */
-export class KonfettiElement extends HTMLElement {
-  static observedAttributes = [
-    'particle-count',
-    'angle',
-    'spread',
-    'start-velocity',
-    'decay',
-    'gravity',
-    'drift',
-    'ticks',
-    'origin-x',
-    'origin-y',
-    'colors',
-    'shapes',
-    'scalar',
-    'preset',
-  ];
-
-  private getOptions(): KonfettiOptions {
-    const options: KonfettiOptions = {};
-
-    const particleCount = this.getAttribute('particle-count');
-    if (particleCount) options.particleCount = parseInt(particleCount, 10);
-
-    const angle = this.getAttribute('angle');
-    if (angle) options.angle = parseInt(angle, 10);
-
-    const spread = this.getAttribute('spread');
-    if (spread) options.spread = parseInt(spread, 10);
-
-    const startVelocity = this.getAttribute('start-velocity');
-    if (startVelocity) options.startVelocity = parseInt(startVelocity, 10);
-
-    const decay = this.getAttribute('decay');
-    if (decay) options.decay = parseFloat(decay);
-
-    const gravity = this.getAttribute('gravity');
-    if (gravity) options.gravity = parseFloat(gravity);
-
-    const drift = this.getAttribute('drift');
-    if (drift) options.drift = parseFloat(drift);
-
-    const ticks = this.getAttribute('ticks');
-    if (ticks) options.ticks = parseInt(ticks, 10);
-
-    const originX = this.getAttribute('origin-x');
-    const originY = this.getAttribute('origin-y');
-    if (originX || originY) {
-      options.origin = {
-        x: originX ? parseFloat(originX) : 0.5,
-        y: originY ? parseFloat(originY) : 0.5,
-      };
-    }
-
-    const colors = this.getAttribute('colors');
-    if (colors) {
-      options.colors = colors.split(',').map((c) => c.trim());
-    }
-
-    const shapes = this.getAttribute('shapes');
-    if (shapes) {
-      options.shapes = shapes.split(',').map((s) => s.trim()) as KonfettiOptions['shapes'];
-    }
-
-    const scalar = this.getAttribute('scalar');
-    if (scalar) options.scalar = parseFloat(scalar);
-
-    return options;
-  }
-
-  /** Fire konfetti with element's configured options */
+export class KonfettiElement extends BaseElement {
+  /** Fire konfetti with the element's attributes, optionally overridden */
   fire(overrides?: KonfettiOptions): void {
-    const preset = this.getAttribute('preset');
-    const options = { ...this.getOptions(), ...overrides };
+    const options = { ...readOptions(this), ...overrides };
+    const preset = readPreset(this);
 
     if (preset) {
-      switch (preset) {
-        case 'cannon':
-          cannon(options);
-          break;
-        case 'explosion':
-          explosion(options);
-          break;
-        case 'fireworks':
-          fireworks(options);
-          break;
-        case 'rain':
-          rain(options);
-          break;
-        case 'snow':
-          snow(options);
-          break;
-        case 'sideCannons':
-          sideCannons(options);
-          break;
-        case 'pride':
-          pride(options);
-          break;
-        default:
-          fire(options);
-      }
+      firePreset(preset, options);
     } else {
       fire(options);
     }
@@ -143,7 +40,7 @@ export class KonfettiElement extends HTMLElement {
     this.dispatchEvent(new CustomEvent('konfetti-fired', { detail: options }));
   }
 
-  /** Reset/clear all konfetti */
+  /** Clear all konfetti */
   reset(): void {
     reset();
   }
@@ -151,6 +48,7 @@ export class KonfettiElement extends HTMLElement {
 
 /** Register the konfetti-burst custom element */
 export function defineKonfettiElement(tagName = 'konfetti-burst'): void {
+  if (typeof customElements === 'undefined') return;
   if (!customElements.get(tagName)) {
     customElements.define(tagName, KonfettiElement);
   }

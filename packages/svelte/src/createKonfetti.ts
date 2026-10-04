@@ -1,42 +1,46 @@
 import {
-  fire as konfettiFire,
-  reset as konfettiReset,
-  cannon as konfettiCannon,
-  explosion as konfettiExplosion,
-  fireworks as konfettiFireworks,
-  rain as konfettiRain,
-  snow as konfettiSnow,
-  sideCannons as konfettiSideCannons,
-  pride as konfettiPride,
-  continuous as konfettiContinuous,
+  cannon,
+  continuous as coreContinuous,
+  reset as coreReset,
+  explosion,
+  fire,
+  fireworks,
   type KonfettiOptions,
+  pride,
+  rain,
+  sideCannons,
+  snow,
 } from '@konfetti-js/core';
+import { onDestroy } from 'svelte';
+
+type FireFn = (options?: KonfettiOptions) => void;
 
 export interface KonfettiStore {
   /** Fire konfetti with optional options */
-  fire: (options?: KonfettiOptions) => void;
+  fire: FireFn;
   /** Fire cannon preset */
-  cannon: (options?: Partial<KonfettiOptions>) => void;
+  cannon: FireFn;
   /** Fire explosion preset */
-  explosion: (options?: Partial<KonfettiOptions>) => void;
+  explosion: FireFn;
   /** Fire fireworks preset */
-  fireworks: (options?: Partial<KonfettiOptions>) => void;
+  fireworks: FireFn;
   /** Fire rain preset */
-  rain: (options?: Partial<KonfettiOptions>) => void;
+  rain: FireFn;
   /** Fire snow preset */
-  snow: (options?: Partial<KonfettiOptions>) => void;
+  snow: FireFn;
   /** Fire side cannons preset */
-  sideCannons: (options?: Partial<KonfettiOptions>) => void;
+  sideCannons: FireFn;
   /** Fire pride preset */
-  pride: (options?: Partial<KonfettiOptions>) => void;
-  /** Start continuous konfetti, returns stop function */
-  continuous: (options?: Partial<KonfettiOptions>, interval?: number) => () => void;
-  /** Reset/clear all konfetti */
+  pride: FireFn;
+  /** Start a stream (stopped automatically on destroy); returns a stop function */
+  continuous: (options?: KonfettiOptions, interval?: number) => () => void;
+  /** Clear all konfetti and stop streams */
   reset: () => void;
 }
 
 /**
- * Create a konfetti store for Svelte
+ * Create konfetti controls for Svelte. When called while a component
+ * initializes, its stream stops automatically when the component is destroyed.
  *
  * @example
  * ```svelte
@@ -46,53 +50,42 @@ export interface KonfettiStore {
  *   const konfetti = createKonfetti();
  * </script>
  *
- * <button on:click={() => konfetti.fire({ particleCount: 100 })}>
+ * <button onclick={() => konfetti.fire({ particleCount: 100 })}>
  *   Celebrate!
  * </button>
  * ```
  */
 export function createKonfetti(): KonfettiStore {
-  let stopFn: (() => void) | null = null;
+  let stop: (() => void) | null = null;
+
+  const stopStream = () => {
+    stop?.();
+    stop = null;
+  };
+
+  try {
+    onDestroy(stopStream);
+  } catch {
+    // Called outside component initialization: nothing to tie the stream to
+  }
 
   return {
-    fire: (options?: KonfettiOptions) => {
-      konfettiFire(options);
-    },
-    cannon: (options?: Partial<KonfettiOptions>) => {
-      konfettiCannon(options);
-    },
-    explosion: (options?: Partial<KonfettiOptions>) => {
-      konfettiExplosion(options);
-    },
-    fireworks: (options?: Partial<KonfettiOptions>) => {
-      konfettiFireworks(options);
-    },
-    rain: (options?: Partial<KonfettiOptions>) => {
-      konfettiRain(options);
-    },
-    snow: (options?: Partial<KonfettiOptions>) => {
-      konfettiSnow(options);
-    },
-    sideCannons: (options?: Partial<KonfettiOptions>) => {
-      konfettiSideCannons(options);
-    },
-    pride: (options?: Partial<KonfettiOptions>) => {
-      konfettiPride(options);
-    },
-    continuous: (options?: Partial<KonfettiOptions>, interval?: number) => {
-      if (stopFn) {
-        stopFn();
-      }
-      const stop = konfettiContinuous(options, interval);
-      stopFn = stop;
+    fire,
+    cannon,
+    explosion,
+    fireworks,
+    rain,
+    snow,
+    sideCannons,
+    pride,
+    continuous: (options?: KonfettiOptions, interval?: number) => {
+      stopStream();
+      stop = coreContinuous(options, interval);
       return stop;
     },
     reset: () => {
-      if (stopFn) {
-        stopFn();
-        stopFn = null;
-      }
-      konfettiReset();
+      stopStream();
+      coreReset();
     },
   };
 }

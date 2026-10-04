@@ -1,77 +1,41 @@
 import type { ParticlePool } from './particle';
-import { ParticleIndex, type ResolvedOptions } from './types';
+import { ParticleIndex } from './types';
 
 /**
- * Physics engine for particle simulation
+ * Advance every particle by `dt`, measured in 60 fps frames (1 = 16.7 ms), so
+ * motion and lifetime look the same at any refresh rate.
+ * Returns true if there are still active particles.
  */
-export class PhysicsEngine {
-  private decay: number = 0.9;
-  private gravity: number = 1;
+export function updateParticles(pool: ParticlePool, dt: number): boolean {
+  const data = pool.data;
 
-  /**
-   * Update physics settings
-   */
-  configure(options: ResolvedOptions): void {
-    this.decay = options.decay;
-    this.gravity = options.gravity;
+  for (let i = 0; i < pool.activeCount; i++) {
+    const idx = i * ParticleIndex.SIZE;
+
+    let vx = data[idx + ParticleIndex.VelocityX];
+    let vy = data[idx + ParticleIndex.VelocityY];
+    const tilt = data[idx + ParticleIndex.Tilt];
+
+    // Gravity, then horizontal wobble based on tilt
+    vy += data[idx + ParticleIndex.Gravity] * dt;
+    vx += data[idx + ParticleIndex.Drift] * Math.sin(tilt) * dt;
+
+    // Air resistance: decay is the share of speed kept per 60 fps frame
+    const damping = data[idx + ParticleIndex.Decay] ** dt;
+    vx *= damping;
+    vy *= damping;
+
+    data[idx + ParticleIndex.VelocityX] = vx;
+    data[idx + ParticleIndex.VelocityY] = vy;
+    data[idx + ParticleIndex.X] += vx * dt;
+    data[idx + ParticleIndex.Y] += vy * dt;
+    data[idx + ParticleIndex.Rotation] += data[idx + ParticleIndex.RotationSpeed] * dt;
+    data[idx + ParticleIndex.Tilt] = tilt + data[idx + ParticleIndex.TiltSpeed] * dt;
+    data[idx + ParticleIndex.Life] -= dt;
   }
 
-  /**
-   * Update all particles in the pool
-   * Returns true if there are still active particles
-   */
-  update(pool: ParticlePool): boolean {
-    const data = pool.data;
+  // Remove dead particles
+  pool.compact();
 
-    for (let i = 0; i < pool.activeCount; i++) {
-      const idx = i * ParticleIndex.SIZE;
-
-      // Get current values
-      let x = data[idx + ParticleIndex.X];
-      let y = data[idx + ParticleIndex.Y];
-      let vx = data[idx + ParticleIndex.VelocityX];
-      let vy = data[idx + ParticleIndex.VelocityY];
-      const rotation = data[idx + ParticleIndex.Rotation];
-      const rotationSpeed = data[idx + ParticleIndex.RotationSpeed];
-      const tilt = data[idx + ParticleIndex.Tilt];
-      const tiltSpeed = data[idx + ParticleIndex.TiltSpeed];
-      const drift = data[idx + ParticleIndex.Drift];
-      let life = data[idx + ParticleIndex.Life];
-
-      // Apply gravity
-      vy += this.gravity;
-
-      // Apply drift (horizontal wobble based on tilt)
-      vx += drift * Math.sin(tilt);
-
-      // Apply decay (air resistance)
-      vx *= this.decay;
-      vy *= this.decay;
-
-      // Update position
-      x += vx;
-      y += vy;
-
-      // Update rotation
-      const newRotation = rotation + rotationSpeed;
-      const newTilt = tilt + tiltSpeed;
-
-      // Decrease life
-      life -= 1;
-
-      // Store updated values
-      data[idx + ParticleIndex.X] = x;
-      data[idx + ParticleIndex.Y] = y;
-      data[idx + ParticleIndex.VelocityX] = vx;
-      data[idx + ParticleIndex.VelocityY] = vy;
-      data[idx + ParticleIndex.Rotation] = newRotation;
-      data[idx + ParticleIndex.Tilt] = newTilt;
-      data[idx + ParticleIndex.Life] = life;
-    }
-
-    // Remove dead particles
-    pool.compact();
-
-    return pool.activeCount > 0;
-  }
+  return pool.activeCount > 0;
 }

@@ -1,3 +1,3 @@
-export { KonfettiElement, defineKonfettiElement } from './KonfettiElement';
-export { KonfettiTriggerElement, defineKonfettiTriggerElement } from './KonfettiTriggerElement';
 export { defineAllElements } from './define';
+export { defineKonfettiElement, KonfettiElement } from './KonfettiElement';
+export { defineKonfettiTriggerElement, KonfettiTriggerElement } from './KonfettiTriggerElement';

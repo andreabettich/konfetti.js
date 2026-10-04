@@ -1,3 +1,4 @@
+import { isShape } from './shapes';
 import type { KonfettiOptions, ResolvedOptions, ShapeType } from './types';
 
 /**
@@ -34,26 +35,55 @@ export const DEFAULT_OPTIONS: ResolvedOptions = {
 };
 
 /**
- * Merge user options with defaults
+ * Use `value` when it is a finite number, otherwise `fallback`
  */
-export function resolveOptions(options?: KonfettiOptions): ResolvedOptions {
+function finite(value: unknown, fallback: number): number {
+  return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+}
+
+/**
+ * Merge user options with defaults, replacing missing or invalid values
+ */
+export function resolveOptions(options: KonfettiOptions = {}): ResolvedOptions {
+  const d = DEFAULT_OPTIONS;
+  const colors = Array.isArray(options.colors)
+    ? options.colors.filter((c) => typeof c === 'string' && c.length > 0)
+    : [];
+  const shapes = Array.isArray(options.shapes) ? options.shapes.filter(isShape) : [];
+
   return {
-    particleCount: options?.particleCount ?? DEFAULT_OPTIONS.particleCount,
-    angle: options?.angle ?? DEFAULT_OPTIONS.angle,
-    spread: options?.spread ?? DEFAULT_OPTIONS.spread,
-    startVelocity: options?.startVelocity ?? DEFAULT_OPTIONS.startVelocity,
-    decay: options?.decay ?? DEFAULT_OPTIONS.decay,
-    gravity: options?.gravity ?? DEFAULT_OPTIONS.gravity,
-    drift: options?.drift ?? DEFAULT_OPTIONS.drift,
-    ticks: options?.ticks ?? DEFAULT_OPTIONS.ticks,
-    origin: options?.origin ?? { ...DEFAULT_OPTIONS.origin },
-    colors: options?.colors ?? [...DEFAULT_OPTIONS.colors],
-    shapes: options?.shapes ?? [...DEFAULT_OPTIONS.shapes],
-    scalar: options?.scalar ?? DEFAULT_OPTIONS.scalar,
-    zIndex: options?.zIndex ?? DEFAULT_OPTIONS.zIndex,
-    disableForReducedMotion:
-      options?.disableForReducedMotion ?? DEFAULT_OPTIONS.disableForReducedMotion,
+    particleCount: Math.max(0, Math.round(finite(options.particleCount, d.particleCount))),
+    angle: finite(options.angle, d.angle),
+    spread: finite(options.spread, d.spread),
+    startVelocity: finite(options.startVelocity, d.startVelocity),
+    decay: clamp(finite(options.decay, d.decay), 0, 1),
+    gravity: finite(options.gravity, d.gravity),
+    drift: finite(options.drift, d.drift),
+    ticks: Math.max(1, finite(options.ticks, d.ticks)),
+    origin: {
+      x: finite(options.origin?.x, d.origin.x),
+      y: finite(options.origin?.y, d.origin.y),
+    },
+    colors: colors.length > 0 ? colors : [...d.colors],
+    shapes: shapes.length > 0 ? shapes : [...d.shapes],
+    scalar: Math.max(0, finite(options.scalar, d.scalar)),
+    zIndex: finite(options.zIndex, d.zIndex),
+    disableForReducedMotion: options.disableForReducedMotion ?? d.disableForReducedMotion,
   };
+}
+
+/**
+ * Layer `override` on top of `base`, skipping keys that are explicitly undefined
+ * so a wrapper passing `{ colors: undefined }` keeps the preset's colors
+ */
+export function mergeOptions(base: KonfettiOptions, override?: KonfettiOptions): KonfettiOptions {
+  const merged: Record<string, unknown> = { ...base };
+  if (override) {
+    for (const [key, value] of Object.entries(override)) {
+      if (value !== undefined) merged[key] = value;
+    }
+  }
+  return merged as KonfettiOptions;
 }
 
 /**
@@ -73,41 +103,15 @@ export function randomRange(min: number, max: number): number {
 /**
  * Get random item from array
  */
-export function randomItem<T>(arr: T[]): T {
+export function randomItem<T>(arr: readonly T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
 /**
- * Convert hex color to RGB values (0-255)
+ * Whether we are running in a browser with a DOM
  */
-export function hexToRgb(hex: string): { r: number; g: number; b: number } {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  if (!result) {
-    return { r: 255, g: 255, b: 255 };
-  }
-  return {
-    r: parseInt(result[1], 16),
-    g: parseInt(result[2], 16),
-    b: parseInt(result[3], 16),
-  };
-}
-
-/**
- * Pack RGB into a single float for storage
- */
-export function packColor(r: number, g: number, b: number): number {
-  return r * 65536 + g * 256 + b;
-}
-
-/**
- * Unpack color from single float
- */
-export function unpackColor(packed: number): { r: number; g: number; b: number } {
-  return {
-    r: Math.floor(packed / 65536) % 256,
-    g: Math.floor(packed / 256) % 256,
-    b: packed % 256,
-  };
+export function isBrowser(): boolean {
+  return typeof window !== 'undefined' && typeof document !== 'undefined';
 }
 
 /**

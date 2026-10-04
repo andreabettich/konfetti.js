@@ -1,25 +1,17 @@
-import { createEffect, createSignal, on } from 'solid-js';
-import {
-  fire,
-  cannon,
-  explosion,
-  fireworks,
-  rain,
-  snow,
-  sideCannons,
-  pride,
-  type KonfettiOptions,
-} from '@konfetti-js/core';
+import { fire, firePreset, type KonfettiOptions, type PresetName } from '@konfetti-js/core';
+import { createEffect, on } from 'solid-js';
 
 export interface KonfettiProps extends KonfettiOptions {
-  /** Trigger konfetti when this becomes true */
+  /** Fire when this turns true */
   fire?: boolean;
-  /** Preset to use (overrides other options) */
-  preset?: 'cannon' | 'explosion' | 'fireworks' | 'rain' | 'snow' | 'sideCannons' | 'pride';
+  /** Preset to fire; other props override the preset's values */
+  preset?: PresetName;
+  /** Called right after firing, for example to set your `fire` signal back to false */
+  onFired?: () => void;
 }
 
 /**
- * Declarative Konfetti component for Solid.js
+ * Declarative Konfetti component for Solid.js. Fires once each time `fire` turns true.
  *
  * @example
  * ```tsx
@@ -28,57 +20,28 @@ export interface KonfettiProps extends KonfettiOptions {
  *
  *   return (
  *     <>
- *       <Konfetti fire={celebrate()} particleCount={100} />
  *       <button onClick={() => setCelebrate(true)}>Celebrate!</button>
+ *       <Konfetti fire={celebrate()} preset="fireworks" onFired={() => setCelebrate(false)} />
  *     </>
  *   );
  * }
  * ```
  */
 export function Konfetti(props: KonfettiProps) {
-  const [hasFired, setHasFired] = createSignal(false);
-
   createEffect(
     on(
       () => props.fire,
       (shouldFire) => {
-        if (shouldFire && !hasFired()) {
-          setHasFired(true);
+        if (!shouldFire) return;
 
-          const { fire: _, preset, ...options } = props;
-
-          if (preset) {
-            switch (preset) {
-              case 'cannon':
-                cannon(options);
-                break;
-              case 'explosion':
-                explosion(options);
-                break;
-              case 'fireworks':
-                fireworks(options);
-                break;
-              case 'rain':
-                rain(options);
-                break;
-              case 'snow':
-                snow(options);
-                break;
-              case 'sideCannons':
-                sideCannons(options);
-                break;
-              case 'pride':
-                pride(options);
-                break;
-            }
-          } else {
-            fire(options);
-          }
+        // Reading props here is untracked, so changing them later does not re-fire
+        const { fire: _fire, preset, onFired, ...options } = props;
+        if (preset) {
+          firePreset(preset, options);
+        } else {
+          fire(options);
         }
-
-        if (!shouldFire) {
-          setHasFired(false);
-        }
+        onFired?.();
       }
     )
   );
