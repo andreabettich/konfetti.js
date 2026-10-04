@@ -1,5 +1,12 @@
 # @konfetti-js/solid
 
+## 0.4.0
+
+### Patch Changes
+
+- Updated dependencies [0c44942]
+  - @konfetti-js/core@0.4.0
+
 ## 0.3.0
 
 ### Minor Changes
