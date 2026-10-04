@@ -1,6 +1,6 @@
 {
   "name": "@konfetti-js/svelte",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Svelte wrapper for konfetti.js",
   "type": "module",
   "main": "./dist/index.js",
