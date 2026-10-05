@@ -4,6 +4,8 @@ A lightweight, zero-dependency confetti animation library for the web. Pieces be
 
 **[Live demo and docs](https://andreabettich.github.io/konfetti.js/)**
 
+Upgrading from the `konfetti.js` package? See the [migration guide](https://github.com/andreabettich/konfetti.js/blob/main/MIGRATION.md).
+
 ```bash
 npm install @konfetti-js/core
 ```

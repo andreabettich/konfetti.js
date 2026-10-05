@@ -34,6 +34,8 @@ All packages are released together and share one version number.
 
 ## Installation
 
+> Upgrading from the `konfetti.js` package? See the [migration guide](./MIGRATION.md).
+
 ### Core Library
 
 ```bash
