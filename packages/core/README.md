@@ -19,7 +19,7 @@ button.addEventListener('click', () => fireFromElement(button, { preset: 'explos
 Or from a CDN, which exposes `window.konfetti`:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@konfetti-js/core@0.3/dist/konfetti.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@konfetti-js/core@0.4/dist/konfetti.min.js"></script>
 ```
 
 Wrappers are available for [React](https://www.npmjs.com/package/@konfetti-js/react), [Vue](https://www.npmjs.com/package/@konfetti-js/vue), [Svelte](https://www.npmjs.com/package/@konfetti-js/svelte), [Solid](https://www.npmjs.com/package/@konfetti-js/solid) and [Web Components](https://www.npmjs.com/package/@konfetti-js/web-components). See the [full documentation](https://github.com/andreabettich/konfetti.js#readme) for every option and preset.

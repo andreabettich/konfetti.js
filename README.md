@@ -57,7 +57,7 @@ pnpm add @konfetti-js/web-components
 ### CDN
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@konfetti-js/core@0.3/dist/konfetti.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@konfetti-js/core@0.4/dist/konfetti.min.js"></script>
 <script>
   konfetti.fire({ particleCount: 100 });
 </script>
@@ -67,7 +67,7 @@ Or as an ES module:
 
 ```html
 <script type="module">
-  import { fireworks } from 'https://cdn.jsdelivr.net/npm/@konfetti-js/core@0.3/+esm';
+  import { fireworks } from 'https://cdn.jsdelivr.net/npm/@konfetti-js/core@0.4/+esm';
   fireworks();
 </script>
 ```
