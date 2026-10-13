@@ -28,8 +28,8 @@
     "provenance": true
   },
   "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch",
+    "build": "tsdown",
+    "dev": "tsdown --watch",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "lint": "biome lint src",
@@ -58,8 +58,8 @@
   },
   "devDependencies": {
     "jsdom": "^30.1.2",
-    "tsup": "^8.5.1",
-    "typescript": "^5.9.3",
+    "tsdown": "^0.23.1",
+    "typescript": "^7.0.2",
     "vitest": "^5.0.3"
   }
 }
